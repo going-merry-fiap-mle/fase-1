@@ -3,7 +3,6 @@ app = Flask(__name__)
 
 @app.route('/health')
 def health():
-    print("teste")
     return {'status': 'ok'}, 200
 
 if __name__ == '__main__':
