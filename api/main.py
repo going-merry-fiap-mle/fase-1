@@ -1,9 +1,10 @@
+import os
 from flask import Flask
 from flasgger import Swagger
-from api.controllers.books import books_bp
-from api.controllers.categories import categories_bp
-from api.controllers.health import health_bp
+from dotenv import load_dotenv
+from api.register_endpoints import register_endpoints
 
+load_dotenv()
 app = Flask(__name__)
 swagger_template = {
     "swagger": "2.0",
@@ -23,12 +24,10 @@ swagger_template = {
 }
 swagger = Swagger(app, template=swagger_template)
 
-app.register_blueprint(books_bp)
-app.register_blueprint(categories_bp)
-app.register_blueprint(health_bp)
+register_endpoints(app)
 
 if __name__ == '__main__':
-    app.run(
-        host='0.0.0.0',
-        port=5000
-    )
+    debug = os.getenv('DEBUG', 'false').lower() == 'true'
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', 5000))
+    app.run(debug=debug, host=host, port=port)

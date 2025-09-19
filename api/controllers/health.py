@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify
+from typing import Tuple
+from flask.wrappers import Response
 
 health_bp = Blueprint('health', __name__, url_prefix='/api/v1/health')
 
 @health_bp.route('', methods=['GET'])
-def health():
+def health() -> Tuple[Response, int]:
     """
     Verificar status da API
     ---
