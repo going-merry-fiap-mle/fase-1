@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "fase-1"
+version = "0.1.0"
+description = "Projeto Flask + Streamlit para a fase 1 do curso de Pós-Graduação em Machine Learning Engineering na FIAP"
+authors = ["Alice Borges dos Santos <aliceborges@outlook.com.br>"]
+
+packages = [
+    { include = "api" },
+    { include = "application" },
+    { include = "domain" },
+    { include = "infrastructure" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flask = "^3.0.0"
+streamlit = "^1.33.0"
+requests = "^2.32.0"
+selenium = "^4.20.0"
+pandas = "^2.2.2"
+debugpy = "^1.8.0"
+pytest-cov = "^4.1.0"
+flasgger = "^0.9.7"
+dotenv = "^0.9.9"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+
+[tool.poetry.scripts]
+test = "pytest"
+cov = "pytest --cov=api --cov=domain --cov=application --cov=infrastructure --cov-report=term-missing"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

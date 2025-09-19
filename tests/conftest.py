@@ -1,0 +1,8 @@
+import pytest
+from api.main import app
+
+
+@pytest.fixture
+def client():
+    with app.test_client() as client:
+        yield client
