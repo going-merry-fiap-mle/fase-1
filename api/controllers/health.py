@@ -4,6 +4,24 @@ health_bp = Blueprint('health', __name__, url_prefix='/api/v1/health')
 
 @health_bp.route('', methods=['GET'])
 def health():
+    """
+    Verificar status da API
+    ---
+    tags:
+      - Saúde
+    responses:
+      200:
+        description: Status da API
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+            message:
+              type: string
+            data_connectivity:
+              type: boolean
+    """
     return jsonify({
         'status': 'ok',
         'message': 'API operacional',

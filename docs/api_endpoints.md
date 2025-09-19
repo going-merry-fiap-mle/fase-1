@@ -69,10 +69,17 @@ Esta documentação descreve os endpoints REST disponíveis na API do projeto, c
 
 ---
 
+## 4. Documentação Swagger
+
+### Acessar documentação interativa da API
+- **Endpoint:** `GET /apidocs/`
+- **Descrição:** Exibe a documentação automática dos endpoints da API, gerada via Swagger/Flasgger. Permite testar e visualizar exemplos de requisições e respostas.
+- **Resposta:** Interface web interativa.
+
+---
+
 ## Observações
-- Todos os endpoints retornam respostas no formato JSON.
+- Todos os endpoints retornam respostas no formato JSON, exceto `/apidocs/`, que retorna uma interface web.
 - Os endpoints de livros e categorias ainda retornam listas vazias ou valores nulos, pois a lógica de persistência e busca será implementada nas próximas etapas.
 - Parâmetros de busca (title, category) devem ser passados via query string em `/api/v1/books/search`.
-
-Para mais detalhes sobre a arquitetura e funcionamento, consulte o arquivo `docs/architecture.md`.
-
+- Para mais detalhes sobre a arquitetura e funcionamento, consulte o arquivo `docs/architecture.md`.
