@@ -208,3 +208,7 @@ __marimo__/
 
 # pycharm
 .idea/
+
+#poetry
+poetry.lock
+poetry.toml
