@@ -27,10 +27,6 @@ webdriver-manager = "^4.0.2"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
 
-[tool.poetry.scripts]
-test = "pytest"
-cov = "pytest --cov=api --cov=domain --cov=application --cov=infrastructure --cov-report=term-missing"
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
