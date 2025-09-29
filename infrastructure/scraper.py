@@ -3,16 +3,23 @@ Módulo de web scraping.
 Implemente aqui a lógica para extrair dados de fontes externas.
 """
 
+import os
+import logging
+from dotenv import load_dotenv
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+load_dotenv()
 def scrape_books():
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    options = webdriver.FirefoxOptions()
+    if os.environ.get("FLASK_ENV", "dev") != "dev":
+        options.add_argument("--headless")
+    driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options)
 
     url = "https://books.toscrape.com/"
     driver.get(url)
@@ -37,14 +44,15 @@ def scrape_books():
             driver.back()
 
             books_data.append({
-                "titulo": title,
-                "preco": price,
+                "title": title,
+                "price": price,
                 "rating": rating,
-                "disponibilidade": availability,
-                "categoria": category,
-                "imagem": img_url
+                "availability": availability,
+                "category": category,
+                "image": img_url
             })
 
+            logging.info(f"Book {title} scraped successfully")
        
         try:
             next_button = driver.find_element(By.CSS_SELECTOR, "li.next > a")
