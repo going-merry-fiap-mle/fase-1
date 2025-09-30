@@ -21,6 +21,9 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
 
+      - name: Update poetry.lock
+        run: poetry lock
+
       - name: Poetry install libraries
         run: poetry install
 
