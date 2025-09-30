@@ -51,6 +51,3 @@ Este projeto tem como objetivo realizar web scraping no site https://books.toscr
 
 - O backend Flask estará disponível em http://localhost:5000
 - O frontend Streamlit estará disponível em http://localhost:8501
-
----
-Mais instruções e documentação das rotas da API serão adicionadas conforme o desenvolvimento avança.

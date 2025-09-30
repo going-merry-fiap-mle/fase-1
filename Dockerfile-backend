@@ -1,4 +1,4 @@
-# Dockerfile para o frontend
+# Dockerfile para o backend
 FROM python:3.12-slim
 WORKDIR /app
 COPY . .
@@ -7,7 +7,7 @@ RUN poetry lock
 RUN poetry install --no-root
 ENV PATH="/root/.local/bin:/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app"
-EXPOSE 8501
-RUN chmod +x start-frontend.sh
-CMD ["./start-frontend.sh"]
+EXPOSE 5000
+RUN chmod +x start-backend.sh
+CMD ["./start-backend.sh"]
 

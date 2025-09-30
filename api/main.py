@@ -28,6 +28,5 @@ register_endpoints(app)
 
 if __name__ == '__main__':
     debug = os.getenv('DEBUG', 'false').lower() == 'true'
-    host = os.getenv('HOST', '0.0.0.0')
-    port = int(os.getenv('PORT', 5000))
-    app.run(debug=debug, host=host, port=port)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=debug)
