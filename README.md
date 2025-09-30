@@ -40,17 +40,73 @@ Este projeto tem como objetivo realizar web scraping no site https://books.toscr
 
 ## Como rodar o projeto com Docker
 
-1. Construa a imagem Docker:
-   ```bash
-   docker build -t fase-1 .
-   ```
-2. Execute o container:
-   ```bash
-   docker run --name fase-1 -p 5000:5000 -p 8501:8501 fase-1
-   ```
+### Pré-requisitos
+- Docker instalado (versão 20.10+)
+- Docker Compose instalado (versão 2.0+)
 
-- O backend Flask estará disponível em http://localhost:5000
-- O frontend Streamlit estará disponível em http://localhost:8501
+### Ambiente de Produção
+
+```bash
+# Clone o repositório
+git clone git@github.com:going-merry-fiap-mle/fase-1.git
+cd fase-1
+
+# Build e execução com Docker Compose
+docker-compose up --build
+
+# Ou executar em background
+docker-compose up -d --build
+
+# Para parar os serviços
+docker-compose down
+```
+
+### Ambiente de Desenvolvimento (com hot-reload)
+
+```bash
+# Executar com arquivo de desenvolvimento
+docker-compose -f docker-compose.dev.yml up --build
+
+# As mudanças nos arquivos Python serão refletidas automaticamente
+# Porta 5678 disponível para debug remoto com debugpy
+```
+
+### URLs dos Serviços
+
+- **Flask API**: http://localhost:5000
+- **Streamlit Dashboard**: http://localhost:8501
+- **Swagger API Docs**: http://localhost:5000/apidocs
+- **Health Check**: http://localhost:5000/api/v1/health
+
+### Comandos Docker Úteis
+
+```bash
+# Ver logs dos containers
+docker-compose logs -f
+
+# Executar comandos dentro do container
+docker-compose exec app bash
+
+# Verificar status dos serviços
+docker-compose ps
+
+# Rebuild sem cache
+docker-compose build --no-cache
+docker-compose up
+
+# Limpar volumes e containers
+docker-compose down -v
+```
+
+### Estrutura dos Arquivos Docker
+
+```
+.
+├── Dockerfile              # Imagem única otimizada
+├── docker-compose.yml      # Configuração de produção
+├── docker-compose.dev.yml  # Configuração de desenvolvimento
+└── .dockerignore          # Arquivos ignorados no build
+```
 
 ---
 Mais instruções e documentação das rotas da API serão adicionadas conforme o desenvolvimento avança.

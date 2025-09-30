@@ -1,0 +1,36 @@
+services:
+  app-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: fiap-fase1:dev
+    container_name: fiap-fase1-dev
+    ports:
+      - "5000:5000"    # Flask API
+      - "8501:8501"    # Streamlit
+      - "5678:5678"    # Debugpy para debug remoto (opcional)
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - DEBUG=True
+      - HOST=0.0.0.0
+      - PORT=5000
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    volumes:
+      # Monta código fonte para hot-reload
+      - .:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+    command: >
+      sh -c "
+      cd /app &&
+      poetry install --no-root &&
+      python -m api.main &
+      streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0 --server.runOnSave true &
+      tail -f /dev/null
+      "
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
