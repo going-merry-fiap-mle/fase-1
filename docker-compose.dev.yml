@@ -1,26 +1,19 @@
-# ================================================
-# Docker Compose - AMBIENTE DE DESENVOLVIMENTO
-# ================================================
-# Uso: docker-compose -f docker-compose.dev.yml up --build
-
 services:
-  app-dev:
-    build: 
+  backend-dev:
+    build:
       context: .
-      dockerfile: Dockerfile.dev
-    image: fiap-fase1:dev
-    container_name: fiap-fase1-dev
+      dockerfile: Dockerfile.backend.dev
+    image: fiap-fase1-backend:dev
+    container_name: fiap-backend-dev
     ports:
-      - "5000:5000"    # Flask API
-      - "8501:8501"    # Streamlit Dashboard
+      - "5000:5000"
     env_file:
       - .env.dev
     volumes:
-      # Monta codigo fonte para hot-reload
-      - .:/app
+      - ./api:/app/api
       - ./data:/app/data
       - ./logs:/app/logs
-    command: sh ./start-dev.sh
+    command: sh ./start-backend-dev.sh
     stdin_open: true
     tty: true
     restart: unless-stopped
@@ -28,7 +21,35 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 2G
+          memory: 1G
+    networks:
+      - fiap-dev-network
+
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.dev
+    image: fiap-fase1-frontend:dev
+    container_name: fiap-frontend-dev
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env.dev
+    environment:
+      - API_URL=http://backend-dev:5000
+    volumes:
+      - ./frontend:/app/frontend
+    command: sh ./start-frontend-dev.sh
+    depends_on:
+      - backend-dev
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
     networks:
       - fiap-dev-network
 

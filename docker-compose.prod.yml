@@ -1,18 +1,12 @@
-# ================================================
-# Docker Compose - AMBIENTE DE PRODUCAO
-# ================================================
-# Uso: docker-compose -f docker-compose.prod.yml up --build
-
 services:
-  app-prod:
-    build: 
+  backend:
+    build:
       context: .
-      dockerfile: Dockerfile.prod
-    image: fiap-fase1:prod
-    container_name: fiap-fase1-prod
+      dockerfile: Dockerfile.backend.prod
+    image: fiap-fase1-backend:prod
+    container_name: fiap-backend-prod
     ports:
-      - "5000:5000"    # Flask API
-      - "8501:8501"    # Streamlit Dashboard
+      - "5000:5000"
     env_file:
       - .env.prod
     logging:
@@ -21,7 +15,6 @@ services:
         max-size: "10m"
         max-file: "3"
     volumes:
-      # Apenas dados e logs (NAO monta codigo fonte)
       - ./data:/app/data:rw
       - ./logs:/app/logs:rw
     restart: unless-stopped
@@ -37,10 +30,48 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 2G
+          memory: 1G
         reservations:
           cpus: '0.5'
           memory: 512M
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.prod
+    image: fiap-fase1-frontend:prod
+    container_name: fiap-frontend-prod
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env.prod
+    environment:
+      - API_URL=http://backend:5000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8501/_stcore/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fiap-prod-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
 networks:
   fiap-prod-network:

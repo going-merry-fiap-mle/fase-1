@@ -44,6 +44,12 @@ Este projeto tem como objetivo realizar web scraping no site https://books.toscr
 - Docker instalado (versão 20.10+)
 - Docker Compose instalado (versão 2.0+)
 
+### Arquitetura Docker
+O projeto utiliza containers separados para backend e frontend:
+- **Backend (Flask API)**: Container isolado com a API REST
+- **Frontend (Streamlit)**: Container isolado com o dashboard
+- **Comunicação**: Via rede Docker interna
+
 ### Configuração Inicial
 
 ```bash
@@ -56,70 +62,119 @@ cp .env.prod.example .env.prod
 ```
 
 ### Ambiente de Desenvolvimento
-#### Com hot-reload e debug ativados:
+Com hot-reload e debug ativados em ambos os containers:
 
 ```bash
-# Iniciar
+# Iniciar ambos os containers
 docker-compose -f docker-compose.dev.yml up --build
 
 # Em background
 docker-compose -f docker-compose.dev.yml up -d --build
 
-# Parar
+# Parar ambos
 docker-compose -f docker-compose.dev.yml down
+
+# Ver logs do backend
+docker-compose -f docker-compose.dev.yml logs -f backend-dev
+
+# Ver logs do frontend
+docker-compose -f docker-compose.dev.yml logs -f frontend-dev
+
+# Iniciar apenas o backend
+docker-compose -f docker-compose.dev.yml up backend-dev
+
+# Iniciar apenas o frontend
+docker-compose -f docker-compose.dev.yml up frontend-dev
 ```
 
 ### Ambiente de Produção
-#### Otimizado e seguro:
+Otimizado e seguro com containers separados:
 
 ```bash
-# Iniciar
+# Iniciar ambos os containers
 docker-compose -f docker-compose.prod.yml up --build
 
 # Em background (recomendado)
 docker-compose -f docker-compose.prod.yml up -d --build
 
-# Parar
+# Parar ambos
 docker-compose -f docker-compose.prod.yml down
+
+# Ver logs do backend
+docker-compose -f docker-compose.prod.yml logs -f backend
+
+# Ver logs do frontend
+docker-compose -f docker-compose.prod.yml logs -f frontend
 ```
 
 ### URLs dos Serviços
 
-- **Flask API**: http://localhost:5000
-- **Streamlit Dashboard**: http://localhost:8501
-- **Swagger API Docs**: http://localhost:5000/apidocs
-- **Health Check**: http://localhost:5000/api/v1/health
+- **Backend API**: http://localhost:5000
+- **Frontend Dashboard**: http://localhost:8501
+- **API Docs (Swagger)**: http://localhost:5000/apidocs
+- **Health Check (Backend)**: http://localhost:5000/api/v1/health
 
 ### Comandos Úteis
 
 ```bash
-# Ver logs
+# Ver logs de ambos os containers
 docker-compose -f docker-compose.prod.yml logs -f
 
-# Ver status
+# Ver status dos containers
 docker-compose -f docker-compose.prod.yml ps
 
-# Verificar recursos
+# Verificar recursos (CPU, RAM)
 docker stats
 
 # Rebuild sem cache
 docker-compose -f docker-compose.prod.yml build --no-cache
 
-# Limpar tudo
+# Limpar containers e volumes
 docker-compose -f docker-compose.prod.yml down -v
+
+# Reiniciar apenas o backend
+docker-compose -f docker-compose.prod.yml restart backend
+
+# Reiniciar apenas o frontend
+docker-compose -f docker-compose.prod.yml restart frontend
 ```
 
 ### Estrutura dos Arquivos Docker
 
 ```
 .
-├── Dockerfile.dev              # Dev com hot-reload
-├── Dockerfile.prod             # Prod multi-stage otimizado
-├── docker-compose.dev.yml      # Compose dev
-├── docker-compose.prod.yml     # Compose prod
-├── .dockerignore              # Arquivos ignorados
-├── start-dev.sh               # Script dev
-└── start-prod.sh              # Script prod
+├── Dockerfile.backend.dev          # Backend dev com hot-reload
+├── Dockerfile.backend.prod         # Backend prod multi-stage
+├── Dockerfile.frontend.dev         # Frontend dev com hot-reload
+├── Dockerfile.frontend.prod        # Frontend prod multi-stage
+├── docker-compose.dev.yml          # Compose dev (2 services)
+├── docker-compose.prod.yml         # Compose prod (2 services)
+├── start-backend-dev.sh            # Script inicialização backend dev
+├── start-backend-prod.sh           # Script inicialização backend prod
+├── start-frontend-dev.sh           # Script inicialização frontend dev
+├── start-frontend-prod.sh          # Script inicialização frontend prod
+└── .dockerignore                   # Arquivos ignorados no build
+```
+
+### Troubleshooting
+**Porta já está em uso:**
+```bash
+# Verificar containers rodando
+docker ps
+
+# Parar todos os containers do projeto
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.dev.yml down
+```
+**Frontend não conecta ao backend:**
+- Verificar se ambos os containers estão na mesma rede
+- Verificar logs: `docker-compose logs -f`
+- URL do backend no frontend: `http://backend:5000` (prod) ou `http://backend-dev:5000` (dev)
+
+**Rebuild forçado:**
+```bash
+docker-compose -f docker-compose.prod.yml build --no-cache
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ---
