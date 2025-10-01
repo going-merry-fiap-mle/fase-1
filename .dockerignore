@@ -78,3 +78,10 @@ CHANGELOG
 
 # Cache do Poetry (desenvolvimento)
 poetry.lock.backup
+
+# Otimizações adicionais
+**/.git
+**/__pycache__
+**/.pytest_cache
+**/htmlcov
+**/*.pyc

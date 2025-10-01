@@ -44,31 +44,43 @@ Este projeto tem como objetivo realizar web scraping no site https://books.toscr
 - Docker instalado (versão 20.10+)
 - Docker Compose instalado (versão 2.0+)
 
-### Ambiente de Produção
+### Configuração Inicial
 
 ```bash
-# Clone o repositório
-git clone git@github.com:going-merry-fiap-mle/fase-1.git
-cd fase-1
+# Desenvolvimento
+cp .env.dev.example .env.dev
 
-# Build e execução com Docker Compose
-docker-compose up --build
-
-# Ou executar em background
-docker-compose up -d --build
-
-# Para parar os serviços
-docker-compose down
+# Produção
+cp .env.prod.example .env.prod
+# Gerar SECRET_KEY: python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-### Ambiente de Desenvolvimento (com hot-reload)
+### Ambiente de Desenvolvimento
+#### Com hot-reload e debug ativados:
 
 ```bash
-# Executar com arquivo de desenvolvimento
+# Iniciar
 docker-compose -f docker-compose.dev.yml up --build
 
-# As mudanças nos arquivos Python serão refletidas automaticamente
-# Porta 5678 disponível para debug remoto com debugpy
+# Em background
+docker-compose -f docker-compose.dev.yml up -d --build
+
+# Parar
+docker-compose -f docker-compose.dev.yml down
+```
+
+### Ambiente de Produção
+#### Otimizado e seguro:
+
+```bash
+# Iniciar
+docker-compose -f docker-compose.prod.yml up --build
+
+# Em background (recomendado)
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# Parar
+docker-compose -f docker-compose.prod.yml down
 ```
 
 ### URLs dos Serviços
@@ -78,34 +90,36 @@ docker-compose -f docker-compose.dev.yml up --build
 - **Swagger API Docs**: http://localhost:5000/apidocs
 - **Health Check**: http://localhost:5000/api/v1/health
 
-### Comandos Docker Úteis
+### Comandos Úteis
 
 ```bash
-# Ver logs dos containers
-docker-compose logs -f
+# Ver logs
+docker-compose -f docker-compose.prod.yml logs -f
 
-# Executar comandos dentro do container
-docker-compose exec app bash
+# Ver status
+docker-compose -f docker-compose.prod.yml ps
 
-# Verificar status dos serviços
-docker-compose ps
+# Verificar recursos
+docker stats
 
 # Rebuild sem cache
-docker-compose build --no-cache
-docker-compose up
+docker-compose -f docker-compose.prod.yml build --no-cache
 
-# Limpar volumes e containers
-docker-compose down -v
+# Limpar tudo
+docker-compose -f docker-compose.prod.yml down -v
 ```
 
 ### Estrutura dos Arquivos Docker
 
 ```
 .
-├── Dockerfile              # Imagem única otimizada
-├── docker-compose.yml      # Configuração de produção
-├── docker-compose.dev.yml  # Configuração de desenvolvimento
-└── .dockerignore          # Arquivos ignorados no build
+├── Dockerfile.dev              # Dev com hot-reload
+├── Dockerfile.prod             # Prod multi-stage otimizado
+├── docker-compose.dev.yml      # Compose dev
+├── docker-compose.prod.yml     # Compose prod
+├── .dockerignore              # Arquivos ignorados
+├── start-dev.sh               # Script dev
+└── start-prod.sh              # Script prod
 ```
 
 ---

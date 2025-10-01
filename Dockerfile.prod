@@ -1,0 +1,87 @@
+# ========================================
+# Dockerfile para PRODUCAO
+# Multi-stage build para otimizacao
+# ========================================
+
+# ========================================
+# Stage 1: Builder
+# ========================================
+FROM python:3.12-slim AS builder
+
+LABEL maintainer="FIAP - Equipe Going Merry"
+LABEL description="Builder stage - instalacao de dependencias"
+LABEL environment="production"
+
+WORKDIR /app
+
+ENV POETRY_VERSION=1.8.3 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_VIRTUALENVS_CREATE=false \
+    PATH="/opt/poetry/bin:$PATH"
+
+# Install Poetry
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    curl -sSL https://install.python-poetry.org | python3 - && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock* ./
+
+# Install production dependencies only
+RUN poetry install --no-interaction --no-ansi --no-root --only main
+
+# ========================================
+# Stage 2: Runtime
+# ========================================
+FROM python:3.12-slim
+
+LABEL maintainer="FIAP - Equipe Going Merry"
+LABEL description="Ambiente de producao - Flask + Streamlit"
+LABEL environment="production"
+
+WORKDIR /app
+
+# Environment variables for production
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    FLASK_ENV=production \
+    FLASK_DEBUG=0
+
+# Install curl for healthcheck
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy installed dependencies from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code
+COPY . .
+
+# Fix line endings and set permissions
+RUN sed -i 's/\r$//' /app/start-prod.sh && \
+    chmod +x /app/start-prod.sh
+
+# Create necessary directories
+RUN mkdir -p /app/data /app/logs
+
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+# Expose ports
+EXPOSE 5000 8501
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5000/api/v1/health || exit 1
+
+# Start command
+CMD ["sh", "./start-prod.sh"]
