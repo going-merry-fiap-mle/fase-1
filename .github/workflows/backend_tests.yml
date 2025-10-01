@@ -19,13 +19,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install Poetry
-        run: pip install poetry --dev
+        run: pip install poetry
 
       - name: Update poetry.lock
         run: poetry lock
 
       - name: Poetry install libraries
-        run: poetry install
+        run: poetry install --no-interaction --dev
 
       - name: Run tests with pytest
         run: pytest --maxfail=1 --disable-warnings -q
