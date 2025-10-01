@@ -1,9 +1,7 @@
 name: Going Merry API Backend Tests
 
 on:
-  push:
   pull_request:
-  workflow_dispatch: # Aqui coloquei só para testar manualmente
 
 jobs:
   tests:
