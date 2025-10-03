@@ -40,8 +40,6 @@ services:
     volumes:
       - ./frontend:/app/frontend
     command: sh ./start-frontend-dev.sh
-    depends_on:
-      - backend-dev
     stdin_open: true
     tty: true
     restart: unless-stopped
