@@ -1,20 +1,18 @@
 #!/bin/sh
-echo "[INFO] Inicializando Flask API..."
+echo "[INFO] Inicializando Flask API em Produção..."
 
-python -c "
-from api.main import app
-import os
+# Pegar porta da variável de ambiente (Heroku usa $PORT)
+PORT=${PORT:-5000}
 
-host = os.getenv('HOST', '0.0.0.0')
-port = int(os.getenv('PORT', 5000))
+echo "[INFO] Backend rodando na porta: ${PORT}"
 
-print('[INFO] Flask API rodando em producao')
-
-app.run(
-    host=host,
-    port=port,
-    debug=False,
-    use_reloader=False,
-    threaded=True
-)
-"
+# Usar Gunicorn para produção
+exec gunicorn \
+  --bind 0.0.0.0:${PORT} \
+  --workers 4 \
+  --worker-class sync \
+  --timeout 120 \
+  --log-level info \
+  --access-logfile - \
+  --error-logfile - \
+  api.main:app

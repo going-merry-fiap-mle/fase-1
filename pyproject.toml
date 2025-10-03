@@ -23,6 +23,7 @@ pytest-cov = "^4.1.0"
 flasgger = "^0.9.7"
 dotenv = "^0.9.9"
 webdriver-manager = "^4.0.2"
+gunicorn = "^23.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
