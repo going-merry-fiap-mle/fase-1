@@ -1,0 +1,46 @@
+name: Going Merry API Backend Tests
+
+on:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Python setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Update poetry.lock
+        run: poetry lock
+
+      - name: Poetry install libraries
+        run: poetry install --no-interaction
+
+      - name: Run tests with pytest and check coverage
+        run: |
+          poetry run pytest \
+            --cov=api/controllers \
+            --cov=api/main.py \
+            --cov=application \
+            --cov=infrastructure \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-fail-under=80 \
+            --maxfail=1 \
+            --disable-warnings \
+            -q
+
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: coverage.xml
