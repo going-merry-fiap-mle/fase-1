@@ -23,7 +23,7 @@ jobs:
         run: poetry lock
 
       - name: Poetry install libraries
-        run: poetry install --no-interaction
+        run: poetry install
 
       - name: Run tests with pytest and check coverage
         run: |
@@ -43,9 +43,3 @@ jobs:
             --maxfail=1 \
             --disable-warnings \
             -q
-
-      - name: Upload code coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage-report
-          path: coverage.xml
