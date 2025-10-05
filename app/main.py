@@ -5,16 +5,16 @@ from flasgger import Swagger
 from flask import Flask
 
 from app.api.register_endpoints import register_endpoints
-from app.utils.env_variables_loader import EnvVariablesLoader
-from app.utils.logger import Logger
+from app.utils.environment_loader import EnvironmentLoader
+from app.utils.logger import AppLogger, LogManager
 
 
 class FlaskApp:
     def __init__(self) -> None:
-        self.logger = Logger("FlaskApp")
-        self.logger.configure_with_os_variables("LOG_LEVEL", "THIRD_PARTY_LOG_LEVEL")
+        LogManager.setup("INFO")
+        self.logger = AppLogger("FlaskApp")
 
-        self.env_loader = EnvVariablesLoader()
+        self.env_loader = EnvironmentLoader()
         self.host: str | None = None
         self.port: int | None = None
         self.debug: bool | None = None
@@ -28,9 +28,9 @@ class FlaskApp:
         register_endpoints(self.app)
 
     def _load_variables(self) -> None:
-        self.host = self.env_loader.load_variable("HOST", "0.0.0.0")
-        self.port = self.env_loader.load_variable("PORT", 5000)
-        self.debug = self.env_loader.load_variable("DEBUG", False)
+        self.host = self.env_loader.get("HOST", "0.0.0.0")
+        self.port = self.env_loader.get("PORT", 5000)
+        self.debug = self.env_loader.get("DEBUG", False)
 
     def _configure_swagger(self) -> None:
         swagger_template: dict[str, Any] = {
@@ -47,7 +47,7 @@ class FlaskApp:
         Swagger(self.app, template=swagger_template)
 
     def run(self) -> None:
-        self.logger.log_info("Iniciando a aplicação...", HTTPStatus.CONTINUE)
+        self.logger.info("Iniciando a aplicação...", HTTPStatus.CONTINUE)
         self.app.run(debug=self.debug, host=self.host, port=self.port)
 
 

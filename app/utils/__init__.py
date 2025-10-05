@@ -1,4 +1,4 @@
-from app.utils.env_variables_loader import EnvVariablesLoader
-from app.utils.logger import Logger
+from app.utils.environment_loader import EnvironmentLoader
+from app.utils.logger import AppLogger
 
-__all__ = ["EnvVariablesLoader", "Logger"]
+__all__ = ["EnvironmentLoader", "AppLogger"]

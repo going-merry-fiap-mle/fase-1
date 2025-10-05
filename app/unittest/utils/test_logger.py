@@ -1,117 +1,124 @@
 import logging
-import os
 import unittest
-from http import HTTPStatus
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from app.utils.logger import Logger
+import app.utils.logger as logger_module
+from app.utils.logger import AppLogger, LogFormatter, LogManager
 
 
 class TestLogger(unittest.TestCase):
-    def test_log_info_includes_context_and_status_code(self):
-        with patch("app.utils.logger.logging.getLogger") as mock_get_logger:
-            mock_logger = MagicMock()
-            mock_get_logger.return_value = mock_logger
+    def setUp(self) -> None:
+        self.root_logger = logging.getLogger()
+        self.original_handlers = self.root_logger.handlers[:]
+        self.original_level = self.root_logger.level
 
-            logger = Logger("my-service")
-            logger.log_info("hello", HTTPStatus.OK)
+    def tearDown(self) -> None:
+        for handler in self.root_logger.handlers[:]:
+            self.root_logger.removeHandler(handler)
+        for handler in self.original_handlers:
+            self.root_logger.addHandler(handler)
+        self.root_logger.setLevel(self.original_level)
 
-            mock_logger.info.assert_called_once()
-            args, _ = mock_logger.info.call_args
-            payload = args[0]
+    def test_setup_sets_root_level_and_installs_logformatter(self) -> None:
+        LogManager.setup(level="DEBUG")
 
-            self.assertIsInstance(payload, dict)
-            self.assertEqual(payload["message"], "hello")
-            self.assertEqual(payload["name"], "my-service")
-            self.assertEqual(payload["filename"], os.path.basename(__file__))
-            self.assertEqual(
-                payload["more_information"], f"statusCode: {HTTPStatus.OK}"
-            )
+        handlers = self.root_logger.handlers
+        self.assertEqual(len(handlers), 1)
+        handler = handlers[0]
+        self.assertIsInstance(handler, logging.StreamHandler)
+        self.assertIsNotNone(handler.formatter)
+        self.assertIsInstance(handler.formatter, LogFormatter)
+        self.assertEqual(self.root_logger.level, logging.DEBUG)
 
-    def test_log_warning_includes_context_and_status_code(self):
-        with patch("app.utils.logger.logging.getLogger") as mock_get_logger:
-            mock_logger = MagicMock()
-            mock_get_logger.return_value = mock_logger
+    def test_logging_methods_emit_expected_levels_and_default_statuses(self) -> None:
+        mock_logger = MagicMock()
+        with patch("logging.getLogger", return_value=mock_logger):
+            app_logger = AppLogger("test-logger")
+            app_logger.info("info-message")
+            app_logger.warning("warn-message")
+            app_logger.error("error-message")
+            app_logger.exception("exception-message")
 
-            logger = Logger("my-service")
-            logger.log_warning("hello", HTTPStatus.OK)
+        mock_logger.info.assert_called_once()
+        mock_logger.warning.assert_called_once()
+        mock_logger.error.assert_called_once()
+        mock_logger.exception.assert_called_once()
 
-            mock_logger.warning.assert_called_once()
-            args, _ = mock_logger.warning.call_args
-            payload = args[0]
+        info_arg = mock_logger.info.call_args[0][0]
+        warn_arg = mock_logger.warning.call_args[0][0]
+        error_arg = mock_logger.error.call_args[0][0]
+        exception_arg = mock_logger.exception.call_args[0][0]
 
-            self.assertIsInstance(payload, dict)
-            self.assertEqual(payload["message"], "hello")
-            self.assertEqual(payload["name"], "my-service")
-            self.assertEqual(payload["filename"], os.path.basename(__file__))
-            self.assertEqual(
-                payload["more_information"], f"statusCode: {HTTPStatus.OK}"
-            )
+        self.assertIn("status_code", info_arg)
+        self.assertIn("200", info_arg)
+        self.assertIn("status_code", warn_arg)
+        self.assertIn("400", warn_arg)
+        self.assertIn("status_code", error_arg)
+        self.assertIn("500", error_arg)
+        self.assertIn("status_code", exception_arg)
+        self.assertIn("500", exception_arg)
 
-    def test_log_error_includes_context_and_status_code(self):
-        with patch("app.utils.logger.logging.getLogger") as mock_get_logger:
-            mock_logger = MagicMock()
-            mock_get_logger.return_value = mock_logger
+    def test_formatter_includes_caller_filename_and_logger_name(self) -> None:
+        fake_frames = [
+            SimpleNamespace(filename=logger_module.__file__),
+            SimpleNamespace(filename="/some/path/caller_module.py"),
+        ]
 
-            logger = Logger("my-service")
-            logger.log_error("hello", HTTPStatus.OK)
-
-            mock_logger.error.assert_called_once()
-            args, _ = mock_logger.error.call_args
-            payload = args[0]
-
-            self.assertIsInstance(payload, dict)
-            self.assertEqual(payload["message"], "hello")
-            self.assertEqual(payload["name"], "my-service")
-            self.assertEqual(payload["filename"], os.path.basename(__file__))
-            self.assertEqual(
-                payload["more_information"], f"statusCode: {HTTPStatus.OK}"
-            )
-
-    def test_log_exception_calls_exception_method(self):
-        with patch("app.utils.logger.logging.getLogger") as mock_get_logger:
-            mock_logger = MagicMock()
-            mock_get_logger.return_value = mock_logger
-
-            logger = Logger("svc")
-            try:
-                raise ValueError("boom")
-            except Exception:
-                logger.log_exception("error occurred", HTTPStatus.INTERNAL_SERVER_ERROR)
-
-            mock_logger.exception.assert_called_once()
-            args, _ = mock_logger.exception.call_args
-            payload = args[0]
-            self.assertEqual(payload["message"], "error occurred")
-            self.assertEqual(payload["name"], "svc")
-            self.assertEqual(
-                payload["more_information"],
-                f"statusCode: {HTTPStatus.INTERNAL_SERVER_ERROR}",
-            )
-
-    def test_configure_maps_level_names_to_ints(self):
-        with patch("app.utils.logger.ConfigureLogger") as mock_configure_logger:
-            Logger.configure("INFO", "WARNING")
-            mock_configure_logger.assert_called_once_with(logging.INFO, logging.WARNING)
-
-    def test_configure_with_env_uses_defaults_when_missing(self):
-        with patch.object(Logger, "configure") as mock_configure, patch(
-            "app.utils.logger.os.environ", new={}
+        with patch("inspect.currentframe") as mock_currentframe, patch(
+            "inspect.getouterframes", return_value=fake_frames
         ):
-            Logger.configure_with_os_variables("APP_LOG_LEVEL", "THIRD_PARTY_LOG_LEVEL")
-            mock_configure.assert_called_once_with("INFO", "ERROR")
+            mock_currentframe.return_value = object()
+            formatter = LogFormatter()
+            record = logging.LogRecord(
+                name="mylogger",
+                level=logging.INFO,
+                pathname="/path/to/something.py",
+                lineno=42,
+                msg="hello world",
+                args=(),
+                exc_info=None,
+            )
+            formatted = formatter.format(record)
 
-    def test_log_sets_filename_unknown_on_inspect_failure(self):
-        with patch("app.utils.logger.logging.getLogger") as mock_get_logger, patch(
-            "app.utils.logger.inspect.currentframe", side_effect=Exception("fail")
+        self.assertIn("logger=mylogger", formatted)
+        self.assertIn("file=caller_module.py", formatted)
+        self.assertIn("hello world", formatted)
+
+    def test_setup_falls_back_to_info_on_invalid_level(self):
+        LogManager.setup(level="NOT_A_LEVEL")
+
+        self.assertEqual(self.root_logger.level, logging.INFO)
+
+        self.assertTrue(self.root_logger.handlers)
+        self.assertIsInstance(self.root_logger.handlers[0].formatter, LogFormatter)
+
+    def test_formatter_uses_unknown_file_on_inspect_failure(self):
+        with patch("inspect.currentframe", side_effect=RuntimeError("boom")):
+            formatter = LogFormatter()
+            record = logging.LogRecord(
+                name="mylogger",
+                level=logging.INFO,
+                pathname="/path/to/something.py",
+                lineno=100,
+                msg="message",
+                args=(),
+                exc_info=None,
+            )
+            formatted = formatter.format(record)
+
+        self.assertIsInstance(formatted, str)
+        self.assertIn("file=unknown", formatted)
+        self.assertIn("logger=mylogger", formatted)
+
+    def test_app_logger_uses_unknown_file_on_stack_failure(self):
+        mock_logger = MagicMock()
+        with patch("logging.getLogger", return_value=mock_logger), patch(
+            "inspect.stack", side_effect=RuntimeError("stack fail")
         ):
-            mock_logger = MagicMock()
-            mock_get_logger.return_value = mock_logger
+            app_logger = AppLogger("logger-name")
+            app_logger.info("payload")
 
-            logger = Logger("svc")
-            logger.log_info("msg", HTTPStatus.CREATED)
-
-            mock_logger.info.assert_called_once()
-            payload = mock_logger.info.call_args[0][0]
-            self.assertEqual(payload["filename"], "unknown")
-            self.assertEqual(payload["message"], "msg")
+        mock_logger.info.assert_called_once()
+        arg = mock_logger.info.call_args[0][0]
+        self.assertIn("'file': 'unknown'", arg)

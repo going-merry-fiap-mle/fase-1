@@ -4,15 +4,15 @@ from selenium import webdriver
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from webdriver_manager.firefox import GeckoDriverManager
 
-from app.utils.env_variables_loader import EnvVariablesLoader
-from app.utils.logger import Logger
+from app.utils.environment_loader import EnvironmentLoader
+from app.utils.logger import AppLogger
 
 
-class WebDriverService:
+class WebDriverInfrastructure:
 
     def __init__(self, url: str = "https://books.toscrape.com/") -> None:
-        self.logger = Logger("WebDriverService")
-        self.env_loader = EnvVariablesLoader()
+        self.logger = AppLogger("WebDriverInfrastructure")
+        self.env_loader = EnvironmentLoader()
 
         self.url: str = url
         self.flask_env: str | None = None
@@ -24,7 +24,7 @@ class WebDriverService:
         self._driver_setup()
 
     def _driver_setup(self) -> None:
-        self.logger.log_info("Configurando o WebDriver...", HTTPStatus.CONTINUE)
+        self.logger.warning("Configurando o WebDriver...", HTTPStatus.CONTINUE)
         options = webdriver.FirefoxOptions()
 
         if self.flask_env != "dev":
@@ -37,4 +37,4 @@ class WebDriverService:
         )
 
     def _load_variables(self) -> None:
-        self.flask_env = self.env_loader.load_variable("FLASK_ENV", "dev")
+        self.flask_env = self.env_loader.get("FLASK_ENV", "dev")

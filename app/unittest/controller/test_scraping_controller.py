@@ -8,7 +8,7 @@ class TestScrapingController(unittest.TestCase):
 
     def test_call_controller_instantiates_and_executes_once(self):
         with patch(
-            "app.controller.scraping_controller.WebDriverService"
+            "app.controller.scraping_controller.WebDriverInfrastructure"
         ) as MockWebDriver, patch(
             "app.controller.scraping_controller.ScraperService"
         ) as MockScraperService, patch(
@@ -32,7 +32,7 @@ class TestScrapingController(unittest.TestCase):
 
     def test_call_controller_returns_use_case_result_unchanged(self):
         with patch(
-            "app.controller.scraping_controller.WebDriverService"
+            "app.controller.scraping_controller.WebDriverInfrastructure"
         ) as MockWebDriver, patch(
             "app.controller.scraping_controller.ScraperService"
         ) as MockScraperService, patch(
@@ -48,7 +48,7 @@ class TestScrapingController(unittest.TestCase):
             self.assertIs(result, passthrough_result)
 
     def test_call_controller_returns_empty_list_when_no_items(self):
-        with patch("app.controller.scraping_controller.WebDriverService"), patch(
+        with patch("app.controller.scraping_controller.WebDriverInfrastructure"), patch(
             "app.controller.scraping_controller.ScraperService"
         ), patch("app.controller.scraping_controller.ScrapingUseCase") as MockUseCase:
 
@@ -61,7 +61,7 @@ class TestScrapingController(unittest.TestCase):
 
     def test_call_controller_propagates_on_webdriver_init_failure(self):
         with patch(
-            "app.controller.scraping_controller.WebDriverService",
+            "app.controller.scraping_controller.WebDriverInfrastructure",
             side_effect=RuntimeError("init failed"),
         ) as MockWebDriver, patch(
             "app.controller.scraping_controller.ScraperService"
@@ -79,7 +79,7 @@ class TestScrapingController(unittest.TestCase):
 
     def test_call_controller_propagates_on_use_case_execute_error(self):
         with patch(
-            "app.controller.scraping_controller.WebDriverService"
+            "app.controller.scraping_controller.WebDriverInfrastructure"
         ) as MockWebDriver, patch(
             "app.controller.scraping_controller.ScraperService"
         ) as MockScraperService, patch(
@@ -102,7 +102,7 @@ class TestScrapingController(unittest.TestCase):
 
     def test_call_controller_creates_new_dependencies_per_call(self):
         with patch(
-            "app.controller.scraping_controller.WebDriverService"
+            "app.controller.scraping_controller.WebDriverInfrastructure"
         ) as MockWebDriver, patch(
             "app.controller.scraping_controller.ScraperService"
         ) as MockScraperService, patch(

@@ -2,97 +2,80 @@ import inspect
 import logging
 import os
 from http import HTTPStatus
-from typing import Any, Callable
-
-from pythonjsonlogger import jsonlogger
+from typing import Optional
 
 
-class ConfigureLogger:
+class LogFormatter(logging.Formatter):
 
-    FORMAT = "%(asctime)s - %(levelname)s - %(message)s %(filename)s"
-
-    def __init__(self, level: int, third_party_level: int) -> None:
-        self._configure_loggers(level, third_party_level)
-        self._configure_warnings()
-
-    def _configure_loggers(self, level: int, third_party_level: int) -> None:
-        root_logger = logging.getLogger()
-
-        for handler in root_logger.handlers:
-            root_logger.removeHandler(handler)
-
-        root_logger.setLevel(third_party_level)
-
-        handler = logging.StreamHandler()
-        handler.setFormatter(jsonlogger.JsonFormatter(self.FORMAT))
-
-        root_logger.addHandler(handler)
-
-        logging.getLogger(__name__).setLevel(level)
-
-        for logger_name in logging.root.manager.loggerDict:
-            if logger_name != __name__:
-                logging.getLogger(logger_name).setLevel(third_party_level)
-
-    def _configure_warnings(self) -> None:
-        logging.captureWarnings(True)
-        logger = logging.getLogger("py.warnings")
-        logger.setLevel(logging.WARNING)
-
-
-class Logger:
-
-    def __init__(self, name: str) -> None:
-        self._name = name
-        self._logger = logging.getLogger(__name__)
-
-    @staticmethod
-    def configure(level: str, third_party_level: str) -> None:
-        ConfigureLogger(
-            logging._nameToLevel[level], logging._nameToLevel[third_party_level]
-        )
-
-    @classmethod
-    def configure_with_os_variables(cls, level: str, third_party: str) -> str:
-        level = os.environ.get(level, logging._levelToName[logging.INFO])
-        third_party = os.environ.get(third_party, logging._levelToName[logging.ERROR])
-
-        cls.configure(level, third_party)
-
-    def log_info(self, message: str, status_code: HTTPStatus, **kwargs: Any) -> None:
-        self._log(self._logger.info, message, status_code, **kwargs)
-
-    def log_warning(self, message: str, status_code: HTTPStatus, **kwargs: Any) -> None:
-        self._log(self._logger.warning, message, status_code, **kwargs)
-
-    def log_error(self, message: str, status_code: HTTPStatus, **kwargs: Any) -> None:
-        self._log(self._logger.error, message, status_code, **kwargs)
-
-    def log_exception(
-        self, message: str, status_code: HTTPStatus, **kwargs: Any
-    ) -> None:
-        self._log(self._logger.exception, message, status_code, **kwargs)
-
-    def _log(
-        self,
-        log_fn: Callable[[dict[str, Any]], None],
-        message: str,
-        status_code: HTTPStatus,
-        **kwargs: Any,
-    ) -> None:
+    def format(self, record: logging.LogRecord) -> str:
         try:
-            filename = os.path.basename(
-                inspect.currentframe().f_back.f_back.f_code.co_filename
-            )
+            frame = inspect.currentframe()
+            outer_frames = inspect.getouterframes(frame)
+            caller = next((f for f in outer_frames if f.filename != __file__), None)
+            filename = os.path.basename(caller.filename) if caller else "unknown"
         except Exception:
             filename = "unknown"
 
-        log_fn(
-            {
-                "message": message,
-                "name": self._name,
-                "filename": filename,
-                "more_information": f"statusCode: {status_code}",
-                **kwargs,
-            }
+        base_format = (
+            f"[%(asctime)s] [%(levelname)s] "
+            f"%(message)s | logger=%(name)s | file={filename}"
         )
+
+        formatter = logging.Formatter(base_format, "%Y-%m-%d %H:%M:%S")
+        return formatter.format(record)
+
+
+class LogManager:
+    @staticmethod
+    def setup(level: Optional[str] = None) -> None:
+        level_name = (level or os.getenv("LOG_LEVEL", "INFO")).upper()
+        log_level = logging._nameToLevel.get(level_name, logging.INFO)
+
+        root = logging.getLogger()
+        for handler in root.handlers[:]:
+            root.removeHandler(handler)
+
+        root.setLevel(log_level)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(LogFormatter())
+        root.addHandler(console_handler)
+
+        logging.captureWarnings(True)
+
+
+class AppLogger:
+    def __init__(self, name: str):
+        self.logger = logging.getLogger(name)
+
+    def _log(self, level: str, message: str, status: HTTPStatus) -> None:
+        try:
+            caller_file = os.path.basename(inspect.stack()[2].filename)
+        except Exception:
+            caller_file = "unknown"
+
+        log_data: dict[str, int | str] = {
+            "message": message,
+            "status_code": status.value,
+            "file": caller_file,
+        }
+
+        getattr(self.logger, level)(str(log_data))
+
+    def info(self, message: str, status: HTTPStatus = HTTPStatus.OK) -> None:
+        self._log("info", message, status)
+
+    def warning(
+        self, message: str, status: HTTPStatus = HTTPStatus.BAD_REQUEST
+    ) -> None:
+        self._log("warning", message, status)
+
+    def error(
+        self, message: str, status: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR
+    ) -> None:
+        self._log("error", message, status)
+
+    def exception(
+        self, message: str, status: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR
+    ) -> None:
+        self._log("exception", message, status)

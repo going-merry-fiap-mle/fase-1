@@ -3,16 +3,16 @@ from http import HTTPStatus
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
+from app.infrastructure.webdriver_infrastructure import WebDriverInfrastructure
 from app.schemas.scraping_schema import ScrapingBase
-from app.services.webdriver_service import WebDriverService
-from app.utils.logger import Logger
+from app.utils.logger import AppLogger
 
 
 class ScraperService:
 
-    def __init__(self, web_driver: WebDriverService) -> None:
+    def __init__(self, web_driver: WebDriverInfrastructure) -> None:
         self.web_driver = web_driver
-        self.logger = Logger("ScraperService")
+        self.logger = AppLogger("ScraperService")
         self.endless_loop_index: int = -1
 
     def scrape_books(self) -> list[ScrapingBase]:
@@ -25,7 +25,7 @@ class ScraperService:
             "Five": 5,
         }
 
-        self.logger.log_info("Extraindo livros...", HTTPStatus.CONTINUE)
+        self.logger.info("Extraindo livros...", HTTPStatus.CONTINUE)
 
         self.web_driver.driver.get(self.web_driver.url)
 
@@ -46,9 +46,7 @@ class ScraperService:
                 if next_page_url:
                     self.web_driver.driver.get(next_page_url)
             except Exception:
-                self.logger.log_info(
-                    "Extração concluida com sucesso", HTTPStatus.CONTINUE
-                )
+                self.logger.info("Extração concluida com sucesso", HTTPStatus.CONTINUE)
                 self.endless_loop_index = 0
                 self.web_driver.driver.quit()
 

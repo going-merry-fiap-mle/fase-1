@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from flask import Flask
 
-from app.api.endpoints.v1.scraper import scraper_bp
+from app.api.endpoints.v1.scraper_endpoints import scraper_bp
 from app.schemas.scraping_schema import ScrapingBase
 
 
@@ -14,7 +14,7 @@ class TestScraperEndpoint(unittest.TestCase):
         app.register_blueprint(scraper_bp)
         return app
 
-    @patch("app.api.endpoints.v1.scraper.ScrapingController.call_controller")
+    @patch("app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller")
     def test_scraping_route_returns_serialized_books_json_200(
         self, mock_call_controller
     ):
@@ -47,7 +47,7 @@ class TestScraperEndpoint(unittest.TestCase):
             self.assertEqual(resp.get_json(), [b.model_dump() for b in books])
 
     @patch(
-        "app.api.endpoints.v1.scraper.ScrapingController.call_controller",
+        "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
         return_value=[],
     )
     def test_scraping_route_returns_empty_json_array_200(self, _mock_call_controller):
@@ -60,7 +60,7 @@ class TestScraperEndpoint(unittest.TestCase):
             self.assertEqual(resp.get_json(), [])
 
     @patch(
-        "app.api.endpoints.v1.scraper.ScrapingController.call_controller",
+        "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
         return_value=[],
     )
     def test_scraping_route_calls_controller_once(self, mock_call_controller):
@@ -71,7 +71,7 @@ class TestScraperEndpoint(unittest.TestCase):
             mock_call_controller.assert_called_once()
 
     @patch(
-        "app.api.endpoints.v1.scraper.ScrapingController.call_controller",
+        "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
         side_effect=Exception("boom"),
     )
     def test_scraping_route_returns_500_on_controller_exception(
@@ -83,7 +83,7 @@ class TestScraperEndpoint(unittest.TestCase):
             self.assertEqual(resp.status_code, 500)
 
     @patch(
-        "app.api.endpoints.v1.scraper.ScrapingController.call_controller",
+        "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
         return_value=None,
     )
     def test_scraping_route_returns_500_on_invalid_controller_result(
