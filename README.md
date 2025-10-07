@@ -40,17 +40,37 @@ Este projeto tem como objetivo realizar web scraping no site https://books.toscr
 
 ## Como rodar o projeto com Docker
 
-1. Construa a imagem Docker:
-   ```bash
-   docker build -t fase-1 .
-   ```
-2. Execute o container:
-   ```bash
-   docker run --name fase-1 -p 5000:5000 -p 8501:8501 fase-1
-   ```
+### Quick Start - Desenvolvimento
+```bash
+# Configurar ambiente
+cp .env.dev.example .env.dev
 
-- O backend Flask estará disponível em http://localhost:5000
-- O frontend Streamlit estará disponível em http://localhost:8501
+# Subir backend e frontend com hot-reload
+docker-compose -f docker-compose.dev.yml up -d --build
+
+# Acessar aplicações
+# Backend: http://localhost:5000
+# Frontend: http://localhost:8501
+```
+
+### Quick Start - Produção
+```bash
+# Instalar Gunicorn (obrigatório para produção)
+poetry add gunicorn
+poetry lock
+
+# Configurar ambiente
+cp .env.prod.example .env.prod
+
+# Subir aplicações otimizadas
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# Acessar aplicações
+# Backend: http://localhost:5000
+# Frontend: http://localhost:8501
+```
+
+**Para documentação completa do Docker, incluindo deploy individual, configurações avançadas e troubleshooting, consulte: [docs/docker.md](docs/docker.md)**
 
 ---
 Mais instruções e documentação das rotas da API serão adicionadas conforme o desenvolvimento avança.
