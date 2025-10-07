@@ -16,6 +16,13 @@ Esta documentação descreve como configurar, executar e gerenciar a aplicação
 - **Produção:** `cp .env.prod.example .env.prod`
 - **Gerar SECRET_KEY:** `python3 -c "import secrets; print(secrets.token_hex(32))"`
 
+### Configurar Banco de Dados
+- **Biblioteca necessária:** `psycopg2-binary` (já incluída no pyproject.toml)
+- **DATABASE_URL:** Configure nos arquivos `.env.dev` e `.env.prod`
+- **Formato PostgreSQL:** `postgres://user:password@host:port/database`
+- **Exemplo Heroku:** As credenciais do Heroku devem ser copiadas do dashboard
+- **Observação:** Nunca commite os arquivos `.env.dev` e `.env.prod` (já estão no .gitignore)
+
 ### Instalar Gunicorn (produção)
 - **Comando:** `poetry add gunicorn && poetry lock`
 - **Descrição:** Servidor WSGI necessário para ambiente de produção
@@ -101,7 +108,30 @@ BACKEND_PORT=8080 FRONTEND_PORT=3000 docker-compose -f docker-compose.prod.yml u
 
 ---
 
-## 5. Estrutura de Arquivos
+## 5. Heroku PostgreSQL
+
+### Configuração
+Configure a variável `DATABASE_URL` nos arquivos `.env.dev` e `.env.prod`:
+```bash
+DATABASE_URL=postgres://user:password@host.amazonaws.com:5432/database
+```
+
+Obtenha as credenciais em: https://dashboard.heroku.com/apps → Resources → Database
+
+### Verificar conexão
+```bash
+docker exec fiap-backend-dev python -c "import psycopg2; import os; conn = psycopg2.connect(os.getenv('DATABASE_URL')); print('✅ Conectado'); conn.close()"
+```
+
+---
+
+## 6. Firefox/Selenium
+
+Os containers já incluem Firefox ESR e Selenium configurados em modo headless.
+
+---
+
+## 7. Estrutura de Arquivos
 
 ### Dockerfiles
 - **Dockerfile.backend.dev** - Backend com hot-reload para desenvolvimento
@@ -121,7 +151,7 @@ BACKEND_PORT=8080 FRONTEND_PORT=3000 docker-compose -f docker-compose.prod.yml u
 
 ---
 
-## 6. Troubleshooting
+## 8. Troubleshooting
 
 ### Porta já em uso
 ```bash
@@ -168,17 +198,9 @@ docker-compose -f docker-compose.prod.yml logs frontend
 
 ## Observações
 
-- Backend e Frontend são completamente independentes, podendo ser deployados separadamente
-- O Gunicorn é obrigatório para produção
-- Variável `$PORT` é automaticamente reconhecida para deploy em Heroku
-- Arquivos `.env` nunca devem ser commitados (já estão no .gitignore)
-- Hot-reload está disponível apenas em desenvolvimento
-- Volumes montados em desenvolvimento permitem edição em tempo real
-- Em produção, o código é copiado para dentro da imagem
-
----
-
-## Links Úteis
-
-- [Docker Compose Documentation](https://docs.docker.com/compose/)
-- [Gunicorn Documentation](https://gunicorn.org/)
+- Backend e Frontend rodam de forma independente
+- Arquivos `.env.dev` e `.env.prod` **nunca** devem ser commitados
+- Hot-reload disponível apenas em desenvolvimento
+- Gunicorn obrigatório para produção
+- Firefox/Selenium já configurados em modo headless
+- PostgreSQL requer `psycopg2-binary` (já incluído)

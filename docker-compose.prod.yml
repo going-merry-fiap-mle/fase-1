@@ -23,6 +23,7 @@ services:
     volumes:
       - ./data:/app/data:rw
       - ./logs:/app/logs:rw
+    command: sh ./start-backend-prod.sh
     restart: unless-stopped
     stop_grace_period: 30s
     healthcheck:
@@ -37,10 +38,12 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 1G
+          memory: 2G
         reservations:
           cpus: '0.5'
-          memory: 512M
+          memory: 1G
+    # Shared memory para Firefox/Selenium
+    shm_size: '2gb'
     labels:
       com.fiap.service: "backend"
       com.fiap.environment: "production"
@@ -70,6 +73,7 @@ services:
         max-size: "10m"
         max-file: "3"
         labels: "service=frontend,env=prod"
+    command: sh ./start-frontend-prod.sh
     restart: unless-stopped
     stop_grace_period: 10s
     healthcheck:
@@ -104,14 +108,3 @@ networks:
     labels:
       com.fiap.network: "production"
       com.fiap.team: "going-merry"
-
-# Volumes nomeados (opcional, mas recomendado para dados persistentes)
-volumes:
-  backend-data:
-    driver: local
-    labels:
-      com.fiap.volume: "backend-data"
-  backend-logs:
-    driver: local
-    labels:
-      com.fiap.volume: "backend-logs"

@@ -21,7 +21,9 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 1G
+          memory: 2G
+    # Shared memory para Firefox/Selenium
+    shm_size: '2gb'
     networks:
       - fiap-dev-network
 
@@ -36,7 +38,7 @@ services:
     env_file:
       - .env.dev
     environment:
-      - API_URL=http://backend-dev:5000
+      - API_URL=${API_URL:-http://backend-dev:5000}
     volumes:
       - ./frontend:/app/frontend
     command: sh ./start-frontend-dev.sh

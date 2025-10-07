@@ -13,13 +13,28 @@ ENV PYTHONUNBUFFERED=1 \
     PATH="/opt/poetry/bin:$PATH" \
     PYTHONPATH=/app \
     FLASK_ENV=development \
-    FLASK_DEBUG=1
+    FLASK_DEBUG=1 \
+    MOZ_HEADLESS=1 \
+    DISPLAY=:99
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
     vim \
-    git && \
+    git \
+    firefox-esr \
+    xvfb \
+    libgtk-3-0 \
+    libdbus-glib-1-2 \
+    libasound2 \
+    libxtst6 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    wget \
+    ca-certificates && \
     curl -sSL https://install.python-poetry.org | python3 - && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -38,4 +53,4 @@ RUN mkdir -p /app/data /app/logs
 
 EXPOSE 5000
 
-CMD ["sh", "./start-backend-dev.sh"]
+CMD sh -c "Xvfb :99 -screen 0 1920x1080x24 & ./start-backend-dev.sh"
