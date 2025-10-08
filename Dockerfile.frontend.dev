@@ -24,6 +24,8 @@ RUN apt-get update && \
 
 COPY pyproject.toml poetry.lock* ./
 
+RUN poetry lock
+
 RUN poetry install --no-interaction --no-ansi --no-root
 
 COPY frontend/ ./frontend/

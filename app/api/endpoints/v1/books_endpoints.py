@@ -1,9 +1,13 @@
 from flask import Blueprint, jsonify
+from flask.wrappers import Response
 
-books_bp = Blueprint('books', __name__, url_prefix='/api/v1/books')
+from app.controller.books.get_book_controller import GetBookController
 
-@books_bp.route('', methods=['GET'])
-def list_books():
+books_bp = Blueprint("books", __name__, url_prefix="/api/v1/books")
+
+
+@books_bp.route("", methods=["GET"])
+def list_books() -> Response:
     """
     Listar todos os livros
     ---
@@ -20,9 +24,13 @@ def list_books():
               items:
                 type: object
     """
-    return jsonify({'books': []}), 200
+    controller = GetBookController()
+    books = controller.call_controller()
 
-@books_bp.route('/<int:book_id>', methods=['GET'])
+    return jsonify({"books": [books_item.model_dump() for books_item in books]})
+
+
+@books_bp.route("/<int:book_id>", methods=["GET"])
 def get_book(book_id):
     """
     Buscar livro por ID
@@ -46,9 +54,10 @@ def get_book(book_id):
             book:
               type: object
     """
-    return jsonify({'id': book_id, 'book': None}), 200
+    return jsonify({"id": book_id, "book": None}), 200
 
-@books_bp.route('/search', methods=['GET'])
+
+@books_bp.route("/search", methods=["GET"])
 def search_books():
     """
     Buscar livros por título e/ou categoria
@@ -77,4 +86,4 @@ def search_books():
               items:
                 type: object
     """
-    return jsonify({'results': []}), 200
+    return jsonify({"results": []}), 200
