@@ -14,6 +14,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml poetry.lock* ./
+
+RUN poetry lock
 RUN poetry install --no-interaction --no-ansi --no-root --only main
 
 FROM python:3.12-slim
@@ -50,7 +52,7 @@ RUN apt-get update && \
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-COPY api/ ./api/
+COPY app/ ./app/
 COPY start-backend-prod.sh ./
 
 RUN sed -i 's/\r$//' /app/start-backend-prod.sh && \

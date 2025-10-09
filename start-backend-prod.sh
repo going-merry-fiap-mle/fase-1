@@ -1,7 +1,7 @@
 #!/bin/sh
-echo "[INFO] Inicializando Flask API em Produção..."
+echo "[INFO] Iniciando Flask API em Produção..."
 
-# Pegar porta da variável de ambiente (Heroku usa $PORT)
+# Pegar a porta da variável de ambiente (Heroku usa $PORT)
 PORT=${PORT:-5000}
 
 echo "[INFO] Backend rodando na porta: ${PORT}"
@@ -15,4 +15,4 @@ exec gunicorn \
   --log-level info \
   --access-logfile - \
   --error-logfile - \
-  api.main:app
+  app.main:app
