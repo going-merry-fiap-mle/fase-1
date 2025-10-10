@@ -27,7 +27,8 @@ services:
     restart: unless-stopped
     stop_grace_period: 30s
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/api/v1/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:5000/api/v1/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -37,13 +38,13 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: "2"
           memory: 2G
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 1G
     # Shared memory para Firefox/Selenium
-    shm_size: '2gb'
+    shm_size: "2gb"
     labels:
       com.fiap.service: "backend"
       com.fiap.environment: "production"
@@ -87,10 +88,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 256M
     labels:
       com.fiap.service: "frontend"

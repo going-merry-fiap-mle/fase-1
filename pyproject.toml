@@ -4,12 +4,8 @@ version = "0.1.0"
 description = "Projeto Flask + Streamlit para a fase 1 do curso de Pós-Graduação em Machine Learning Engineering na FIAP"
 authors = ["Alice Borges dos Santos <aliceborges@outlook.com.br>"]
 
-packages = [
-    { include = "api" },
-    { include = "application" },
-    { include = "domain" },
-    { include = "infrastructure" }
-]
+packages = [{ include = "app" }]
+
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -23,6 +19,8 @@ pytest-cov = "^4.1.0"
 flasgger = "^0.9.7"
 dotenv = "^0.9.9"
 webdriver-manager = "^4.0.2"
+flask-pydantic = "^0.13.2"
+python-json-logger = "^3.3.0"
 gunicorn = "^23.0.0"
 psycopg2-binary = "^2.9.9"
 

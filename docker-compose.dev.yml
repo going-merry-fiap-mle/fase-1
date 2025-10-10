@@ -10,7 +10,7 @@ services:
     env_file:
       - .env.dev
     volumes:
-      - ./api:/app/api
+      - ./app:/app/api
       - ./data:/app/data
       - ./logs:/app/logs
     command: sh ./start-backend-dev.sh
@@ -20,10 +20,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: "2"
           memory: 2G
     # Shared memory para Firefox/Selenium
-    shm_size: '2gb'
+    shm_size: "2gb"
     networks:
       - fiap-dev-network
 
@@ -48,7 +48,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
     networks:
       - fiap-dev-network

@@ -41,9 +41,11 @@ RUN apt-get update && \
 
 COPY pyproject.toml poetry.lock* ./
 
+RUN poetry lock
+
 RUN poetry install --no-interaction --no-ansi --no-root
 
-COPY api/ ./api/
+COPY app/ ./app/
 COPY start-backend-dev.sh ./
 
 RUN sed -i 's/\r$//' /app/start-backend-dev.sh && \
