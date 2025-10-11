@@ -9,3 +9,8 @@ class Book:
     availability: str
     category: str
     image: str
+
+
+@dataclass(frozen=True)
+class Category:
+    name: str
