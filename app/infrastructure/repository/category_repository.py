@@ -6,10 +6,11 @@ class CategoryRepository(ICategoryRepository):
 
     def get_categories(self) -> list[Category]:
         # aqui deve ser a query sqlalchemy para buscar as categorias únicas do banco
-        # Por enquanto, retornando algumas categorias de exemplo
+        # Exemplo: session.query(Book.category).distinct().all()
+        # Por enquanto, retornando categorias que correspondem aos livros mock
         test_categories = [
+            Category(name="Programming"),
             Category(name="Poetry"),
             Category(name="Fiction"),
-            Category(name="Science"),
         ]
         return test_categories
