@@ -8,8 +8,6 @@ from app.api.register_endpoints import register_endpoints
 from app.utils.environment_loader import EnvironmentLoader
 from app.utils.logger import AppLogger, LogManager
 
-from infrastructure.database import engine, SessionLocal
-from sqlalchemy.exc import OperationalError
 
 
 class FlaskApp:
@@ -28,7 +26,6 @@ class FlaskApp:
 
         self._configure_swagger()
 
-        self._db_connection()
 
         register_endpoints(self.app)
 
@@ -54,15 +51,6 @@ class FlaskApp:
     def run(self) -> None:
         self.logger.info("Iniciando a aplicação...", HTTPStatus.CONTINUE)
         self.app.run(debug=self.debug, host=self.host, port=self.port)
-
-    def _db_connection(self) -> None:
-        try:
-            with engine.connect() as conn:
-                self.logger.info("Banco de dados conectado com sucesso.")
-                pass
-        except OperationalError as e:
-            self.logger.error("Falha na conexão com o banco de dados:", e)
-
 
 flask_app = FlaskApp()
 
