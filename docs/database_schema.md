@@ -22,15 +22,15 @@ Este documento descreve o modelo de dados utilizado pela API de Livros, incluind
 ## users *(opcional, para autenticação)*
 - **id**: UUID (PK)
 - **username**: string (único)
-- **password_hash**: string
-- **role**: string (admin, user)
+- **password**: string
+- **role**: enum('admin', 'user')
 - **created_at**: datetime
 
 ---
 
 ### Observações
 - Todos os IDs são do tipo UUID (ex: `550e8400-e29b-41d4-a716-446655440000`).
+- O campo `role` da tabela `users` é um ENUM com os valores possíveis: 'admin', 'user'.
 - As tabelas opcionais são recomendadas para desafios de autenticação e monitoramento.
 - Relacionamento: `books.category_id` referencia `categories.id`.
 - Datas em UTC.
-
