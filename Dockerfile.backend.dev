@@ -46,6 +46,13 @@ RUN poetry lock
 RUN poetry install --no-interaction --no-ansi --no-root
 
 COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY start-backend-dev.sh ./
+
+RUN alembic upgrade head
+
+COPY app/ ./app/
 COPY start-backend-dev.sh ./
 
 RUN sed -i 's/\r$//' /app/start-backend-dev.sh && \
