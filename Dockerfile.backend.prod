@@ -18,6 +18,11 @@ COPY pyproject.toml poetry.lock* ./
 RUN poetry lock
 RUN poetry install --no-interaction --no-ansi --no-root --only main
 
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY start-backend-dev.sh ./
+
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -53,6 +58,11 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+
+RUN alembic upgrade head
+
 COPY start-backend-prod.sh ./
 
 RUN sed -i 's/\r$//' /app/start-backend-prod.sh && \
