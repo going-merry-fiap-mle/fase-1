@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
 from datetime import datetime, timezone
 import enum
+import sqlalchemy
 
 Base = declarative_base()
 class UserRole(enum.Enum):
@@ -16,21 +17,29 @@ class Book(Base):
     __tablename__ = "books"
     __table_args__ = (
         CheckConstraint('(rating >= 1 AND rating <= 5) OR rating IS NULL', name='check_rating_range'),
+        UniqueConstraint('id', name='uq_books_id'),
+        # Índices definidos diretamente na tupla
+        sqlalchemy.Index('ix_books_category_id', 'category_id'),
+        sqlalchemy.Index('ix_books_rating', 'rating'),
+        sqlalchemy.Index('ix_books_price', 'price'),
+        sqlalchemy.Index('ix_books_availability', 'availability'),
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     title = Column(String, nullable=False)
     price = Column(DECIMAL(10, 2), nullable=False)
-    rating = Column(Integer, nullable=True)  
+    rating = Column(Integer, nullable=True)
     availability = Column(String, nullable=False)
     category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id"), nullable=False)
     image_url = Column(String, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
-
 class Category(Base):
     __tablename__ = "categories"
+    __table_args__ = (
+        sqlalchemy.Index('ix_categories_id', 'id'),
+    )
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     name = Column(String, unique=True, nullable=False)
 
