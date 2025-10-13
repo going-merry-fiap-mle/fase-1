@@ -1,13 +1,19 @@
+import threading
+
 from flask import Blueprint, Response, jsonify
 
 from app.controller.scraping_controller import ScrapingController
-from app.schemas.scraping_schema import ScrapingBase
 
 scraper_bp = Blueprint("scraping", __name__, url_prefix="/api/v1/scraping")
 
 
+def scraping_endpoint() -> None:
+    controller = ScrapingController()
+    controller.call_controller()
+
+
 @scraper_bp.route("", methods=["GET"])
-def scraping() -> list[ScrapingBase] | Response:
+def scraping() -> tuple[Response, int]:
     """
     Realizar o web scraping dos livros
     ---
@@ -17,7 +23,8 @@ def scraping() -> list[ScrapingBase] | Response:
         200:
             description: Retorna a lista de livros extraídos
     """
-    controller = ScrapingController()
-    scraping = controller.call_controller()
+    thread = threading.Thread(target=scraping_endpoint)
+    thread.daemon = True
+    thread.start()
 
-    return jsonify([scraping_item.model_dump() for scraping_item in scraping])
+    return jsonify("Scraping iniciado com sucesso"), 202

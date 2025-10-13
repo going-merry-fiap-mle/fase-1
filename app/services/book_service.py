@@ -1,5 +1,5 @@
+from app.domain.models.book_domain_model import Book
 from app.port.book_port import IBookRepository
-from app.domain.models import Book
 
 
 class BookService:
