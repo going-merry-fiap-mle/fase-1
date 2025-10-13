@@ -10,10 +10,5 @@ class ScrapingBase(BaseModel):
     image_url: str
 
 
-class Book(BaseModel):
-    title: str
-    price: str
-    rating: int
-    availability: str
-    category: str
-    image_url: str
+class Book(ScrapingBase):
+    pass
