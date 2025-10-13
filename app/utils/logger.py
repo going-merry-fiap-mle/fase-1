@@ -8,18 +8,7 @@ from typing import Optional
 class LogFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
-        try:
-            frame = inspect.currentframe()
-            outer_frames = inspect.getouterframes(frame)
-            caller = next((f for f in outer_frames if f.filename != __file__), None)
-            filename = os.path.basename(caller.filename) if caller else "unknown"
-        except Exception:
-            filename = "unknown"
-
-        base_format = (
-            f"[%(asctime)s] [%(levelname)s] "
-            f"%(message)s | logger=%(name)s | file={filename}"
-        )
+        base_format = f"[%(asctime)s] [%(levelname)s] " f"%(message)s | logger=%(name)s"
 
         formatter = logging.Formatter(base_format, "%Y-%m-%d %H:%M:%S")
         return formatter.format(record)

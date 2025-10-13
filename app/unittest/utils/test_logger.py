@@ -82,7 +82,6 @@ class TestLogger(unittest.TestCase):
             formatted = formatter.format(record)
 
         self.assertIn("logger=mylogger", formatted)
-        self.assertIn("file=caller_module.py", formatted)
         self.assertIn("hello world", formatted)
 
     def test_setup_falls_back_to_info_on_invalid_level(self):
@@ -108,7 +107,6 @@ class TestLogger(unittest.TestCase):
             formatted = formatter.format(record)
 
         self.assertIsInstance(formatted, str)
-        self.assertIn("file=unknown", formatted)
         self.assertIn("logger=mylogger", formatted)
 
     def test_app_logger_uses_unknown_file_on_stack_failure(self):
