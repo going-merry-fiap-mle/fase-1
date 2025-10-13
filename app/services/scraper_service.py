@@ -50,7 +50,7 @@ class ScraperService:
 
             try:
                 next_button = self.web_driver.driver.find_element(
-                    By.CSS_SELECTOR, "li.next > b"
+                    By.CSS_SELECTOR, "li.next > a"
                 )
                 next_page_url = next_button.get_attribute("href")
                 if next_page_url:

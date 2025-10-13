@@ -13,5 +13,7 @@ class CategoryRepository:
                 domain_category = DomainCategory(name=name)
                 category_orm = Category.from_domain(domain_category)
                 session.add(category_orm)
+                session.commit()
+                session.refresh(category_orm)
 
             return category_orm.to_domain()
