@@ -1,6 +1,13 @@
+from unittest.mock import patch
+
+
 def test_books_endpoint(client):
-    response = client.get("/api/v1/books")
-    assert response.status_code == 200 or response.status_code == 501
+    with patch(
+        "app.infrastructure.repository.book_repository.BookRepository.get_books",
+        return_value=[],
+    ):
+        response = client.get("/api/v1/books")
+        assert response.status_code == 200 or response.status_code == 501
 
 
 def test_books_search_endpoint(client):
