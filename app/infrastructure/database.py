@@ -33,4 +33,4 @@ class Database:
             session.close()
 
     def _load_variables(self) -> None:
-        self._db_url = self._env_loader.get("DATABASE_URL", "localhost")
+        self._db_url = self._env_loader.get("DATABASE_URL", "sqlite:///:memory:")

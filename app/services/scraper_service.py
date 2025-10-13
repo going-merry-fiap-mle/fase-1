@@ -9,7 +9,7 @@ from app.domain.models.book_domain_model import Book as DomainBook
 from app.domain.models.category_domain_model import Category as DomainCategory
 from app.infrastructure.webdriver_infrastructure import WebDriverInfrastructure
 from app.port.scraping_port import IScrapingRepository
-from app.schemas.scraping_schema import Book
+from app.schemas.scraping_schema import ScrapingBase
 from app.utils.logger import AppLogger
 
 
@@ -25,8 +25,8 @@ class ScraperService:
         self.logger = AppLogger("ScraperService")
         self.endless_loop_index: int = -1
 
-    def scrape_books(self) -> list[Book]:
-        books_data: list[Book] = []
+    def scrape_books(self) -> list[ScrapingBase]:
+        books_data: list[ScrapingBase] = []
         rating_map: dict[str, int] = {
             "One": 1,
             "Two": 2,
@@ -62,7 +62,9 @@ class ScraperService:
 
         return books_data
 
-    def _parse_book(self, book_element: WebElement, rating_map: dict[str, int]) -> Book:
+    def _parse_book(
+        self, book_element: WebElement, rating_map: dict[str, int]
+    ) -> ScrapingBase:
         h3_a = book_element.find_element(By.TAG_NAME, "h3").find_element(
             By.TAG_NAME, "a"
         )
@@ -93,7 +95,7 @@ class ScraperService:
         ).text
         self.web_driver.driver.back()
 
-        return Book(
+        return ScrapingBase(
             title=title,
             price=price,
             rating=rating,
@@ -102,11 +104,11 @@ class ScraperService:
             image_url=img_url,
         )
 
-    def save_books(self, books: list[Book]) -> None:
+    def save_books(self, books: list[ScrapingBase]) -> None:
         domain_books = self._convert_to_domain_books(books)
         self._scraping_repository.scraping_bulk_insert(domain_books)
 
-    def _convert_to_domain_books(self, books: list[Book]) -> list[DomainBook]:
+    def _convert_to_domain_books(self, books: list[ScrapingBase]) -> list[DomainBook]:
         domain_books: list[DomainBook] = []
 
         for book in books:
