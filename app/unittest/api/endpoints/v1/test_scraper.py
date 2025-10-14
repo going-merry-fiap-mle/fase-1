@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch
+from unittest.mock import patch as patch_thread
 
 from flask import Flask
 
@@ -25,7 +26,7 @@ class TestScraperEndpoint(unittest.TestCase):
                 rating=5,
                 availability="In stock",
                 category="Fiction",
-                image="urlA",
+                image_url="urlA",
             ),
             ScrapingBase(
                 title="Book B",
@@ -33,18 +34,29 @@ class TestScraperEndpoint(unittest.TestCase):
                 rating=4,
                 availability="Out of stock",
                 category="Non-Fiction",
-                image="urlB",
+                image_url="urlB",
             ),
         ]
         mock_call_controller.return_value = books
 
         app = self.create_app()
-        with app.test_client() as client:
-            resp = client.get("/api/v1/scraping")
-            self.assertEqual(resp.status_code, 200)
-            self.assertEqual(resp.mimetype, "application/json")
-            self.assertTrue(resp.is_json)
-            self.assertEqual(resp.get_json(), [b.model_dump() for b in books])
+
+        class DummyThread:
+            def __init__(self, target):
+                self._target = target
+                self.daemon = False
+
+            def start(self):
+                self._target()
+
+        with patch_thread(
+            "app.api.endpoints.v1.scraper_endpoints.threading.Thread",
+            side_effect=lambda target: DummyThread(target),
+        ):
+            with app.test_client() as client:
+                resp = client.get("/api/v1/scraping")
+                self.assertEqual(resp.status_code, 202)
+                mock_call_controller.assert_called_once()
 
     @patch(
         "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
@@ -52,12 +64,23 @@ class TestScraperEndpoint(unittest.TestCase):
     )
     def test_scraping_route_returns_empty_json_array_200(self, _mock_call_controller):
         app = self.create_app()
-        with app.test_client() as client:
-            resp = client.get("/api/v1/scraping")
-            self.assertEqual(resp.status_code, 200)
-            self.assertEqual(resp.mimetype, "application/json")
-            self.assertTrue(resp.is_json)
-            self.assertEqual(resp.get_json(), [])
+
+        class DummyThread:
+            def __init__(self, target):
+                self._target = target
+                self.daemon = False
+
+            def start(self):
+                self._target()
+
+        with patch_thread(
+            "app.api.endpoints.v1.scraper_endpoints.threading.Thread",
+            side_effect=lambda target: DummyThread(target),
+        ):
+            with app.test_client() as client:
+                resp = client.get("/api/v1/scraping")
+                self.assertEqual(resp.status_code, 202)
+                _mock_call_controller.assert_called_once()
 
     @patch(
         "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
@@ -65,10 +88,23 @@ class TestScraperEndpoint(unittest.TestCase):
     )
     def test_scraping_route_calls_controller_once(self, mock_call_controller):
         app = self.create_app()
-        with app.test_client() as client:
-            resp = client.get("/api/v1/scraping")
-            self.assertEqual(resp.status_code, 200)
-            mock_call_controller.assert_called_once()
+
+        class DummyThread:
+            def __init__(self, target):
+                self._target = target
+                self.daemon = False
+
+            def start(self):
+                self._target()
+
+        with patch_thread(
+            "app.api.endpoints.v1.scraper_endpoints.threading.Thread",
+            side_effect=lambda target: DummyThread(target),
+        ):
+            with app.test_client() as client:
+                resp = client.get("/api/v1/scraping")
+                self.assertEqual(resp.status_code, 202)
+                mock_call_controller.assert_called_once()
 
     @patch(
         "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
@@ -78,9 +114,25 @@ class TestScraperEndpoint(unittest.TestCase):
         self, _mock_call_controller
     ):
         app = self.create_app(testing=False)
-        with app.test_client() as client:
-            resp = client.get("/api/v1/scraping")
-            self.assertEqual(resp.status_code, 500)
+
+        class DummyThread:
+            def __init__(self, target):
+                self._target = target
+                self.daemon = False
+
+            def start(self):
+                try:
+                    self._target()
+                except Exception:
+                    pass
+
+        with patch_thread(
+            "app.api.endpoints.v1.scraper_endpoints.threading.Thread",
+            side_effect=lambda target: DummyThread(target),
+        ):
+            with app.test_client() as client:
+                resp = client.get("/api/v1/scraping")
+                self.assertEqual(resp.status_code, 202)
 
     @patch(
         "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
@@ -92,7 +144,7 @@ class TestScraperEndpoint(unittest.TestCase):
         app = self.create_app(testing=False)
         with app.test_client() as client:
             resp = client.get("/api/v1/scraping")
-            self.assertEqual(resp.status_code, 500)
+            self.assertEqual(resp.status_code, 202)
 
     def test_scraping_route_disallows_post_405(self):
         app = self.create_app()

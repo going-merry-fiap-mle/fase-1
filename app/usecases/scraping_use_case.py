@@ -10,4 +10,5 @@ class ScrapingUseCase:
     def execute(self) -> list[ScrapingBase]:
         service = self._scraping_service
         scraping = service.scrape_books()
+        service.save_books(scraping)
         return scraping

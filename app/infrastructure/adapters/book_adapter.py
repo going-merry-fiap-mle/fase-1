@@ -1,4 +1,4 @@
-from app.domain.models import Book
+from app.domain.models.book_domain_model import Book
 from app.infrastructure.repository.book_repository import BookRepository
 from app.port.book_port import IBookRepository
 

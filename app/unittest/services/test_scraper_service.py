@@ -35,7 +35,7 @@ class TestScraperService(unittest.TestCase):
             rating=5,
             availability="In stock",
             category="Cat1",
-            image="img1",
+            image_url="img1",
         )
         parsed_2 = ScrapingBase(
             title="Title 2",
@@ -43,7 +43,7 @@ class TestScraperService(unittest.TestCase):
             rating=4,
             availability="In stock",
             category="Cat2",
-            image="img2",
+            image_url="img2",
         )
         parsed_3 = ScrapingBase(
             title="Title 3",
@@ -51,7 +51,7 @@ class TestScraperService(unittest.TestCase):
             rating=3,
             availability="In stock",
             category="Cat3",
-            image="img3",
+            image_url="img3",
         )
 
         with patch("app.services.scraper_service.AppLogger"):
@@ -60,7 +60,9 @@ class TestScraperService(unittest.TestCase):
                 "_parse_book",
                 side_effect=[parsed_1, parsed_2, parsed_3],
             ):
-                service = ScraperService(web_driver=web_driver_mock)
+                service = ScraperService(
+                    web_driver=web_driver_mock, scraping_repository=MagicMock()
+                )
                 results = service.scrape_books()
 
         self.assertEqual(len(results), 3)
@@ -111,7 +113,9 @@ class TestScraperService(unittest.TestCase):
         driver_mock.find_element.return_value = category_el
 
         with patch("app.services.scraper_service.AppLogger"):
-            service = ScraperService(web_driver=web_driver_mock)
+            service = ScraperService(
+                web_driver=web_driver_mock, scraping_repository=MagicMock()
+            )
             result = service._parse_book(
                 book_el, {"One": 1, "Two": 2, "Three": 3, "Four": 4, "Five": 5}
             )
@@ -122,7 +126,7 @@ class TestScraperService(unittest.TestCase):
         self.assertEqual(result.rating, 3)
         self.assertEqual(result.availability, "In stock (22 available)")
         self.assertEqual(result.category, "Science")
-        self.assertEqual(result.image, "http://example.com/img.jpg")
+        self.assertEqual(result.image_url, "http://example.com/img.jpg")
 
     def test_parse_book_navigates_to_detail_and_returns_to_listing(self) -> None:
         driver_mock = MagicMock()
@@ -159,7 +163,9 @@ class TestScraperService(unittest.TestCase):
         driver_mock.find_element.return_value = category_el
 
         with patch("app.services.scraper_service.AppLogger"):
-            service = ScraperService(web_driver=web_driver_mock)
+            service = ScraperService(
+                web_driver=web_driver_mock, scraping_repository=MagicMock()
+            )
             _ = service._parse_book(
                 book_el, {"One": 1, "Two": 2, "Three": 3, "Four": 4, "Five": 5}
             )
@@ -183,13 +189,15 @@ class TestScraperService(unittest.TestCase):
             rating=2,
             availability="In stock",
             category="Misc",
-            image="img",
+            image_url="img",
         )
 
         with patch("app.services.scraper_service.AppLogger") as LoggerMock:
             logger_instance = LoggerMock.return_value
             with patch.object(ScraperService, "_parse_book", return_value=parsed):
-                service = ScraperService(web_driver=web_driver_mock)
+                service = ScraperService(
+                    web_driver=web_driver_mock, scraping_repository=MagicMock()
+                )
                 results = service.scrape_books()
 
         self.assertEqual(len(results), 1)
@@ -236,7 +244,9 @@ class TestScraperService(unittest.TestCase):
         driver_mock.find_element.return_value = category_el
 
         with patch("app.services.scraper_service.AppLogger"):
-            service = ScraperService(web_driver=web_driver_mock)
+            service = ScraperService(
+                web_driver=web_driver_mock, scraping_repository=MagicMock()
+            )
             result = service._parse_book(
                 book_el, {"One": 1, "Two": 2, "Three": 3, "Four": 4, "Five": 5}
             )
@@ -278,7 +288,9 @@ class TestScraperService(unittest.TestCase):
         driver_mock.find_element.return_value = category_el
 
         with patch("app.services.scraper_service.AppLogger"):
-            service = ScraperService(web_driver=web_driver_mock)
+            service = ScraperService(
+                web_driver=web_driver_mock, scraping_repository=MagicMock()
+            )
             result = service._parse_book(
                 book_el, {"One": 1, "Two": 2, "Three": 3, "Four": 4, "Five": 5}
             )

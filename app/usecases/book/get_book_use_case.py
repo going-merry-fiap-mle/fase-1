@@ -1,4 +1,4 @@
-from app.domain.models import Book
+from app.domain.models.book_domain_model import Book
 from app.services.book_service import BookService
 
 

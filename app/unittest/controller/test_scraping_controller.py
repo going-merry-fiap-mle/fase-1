@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 from app.controller.scraping_controller import ScrapingController
 
@@ -25,7 +25,7 @@ class TestScrapingController(unittest.TestCase):
             self.assertEqual(result, expected_result)
             MockWebDriver.assert_called_once_with()
             wd_instance = MockWebDriver.return_value
-            MockScraperService.assert_called_once_with(wd_instance)
+            MockScraperService.assert_called_once_with(wd_instance, ANY)
             scraper_instance = MockScraperService.return_value
             MockUseCase.assert_called_once_with(scraper_instance)
             use_case_instance.execute.assert_called_once_with()
@@ -95,7 +95,7 @@ class TestScrapingController(unittest.TestCase):
 
             MockWebDriver.assert_called_once_with()
             wd_instance = MockWebDriver.return_value
-            MockScraperService.assert_called_once_with(wd_instance)
+            MockScraperService.assert_called_once_with(wd_instance, ANY)
             scraper_instance = MockScraperService.return_value
             MockUseCase.assert_called_once_with(scraper_instance)
             use_case_instance.execute.assert_called_once_with()
