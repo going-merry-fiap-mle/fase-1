@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
 
 from app.controller.books.get_book_controller import GetBookController
+from app.controller.books.search_books_controller import SearchBooksController
 
 books_bp = Blueprint("books", __name__, url_prefix="/api/v1/books")
 
@@ -58,7 +59,7 @@ def get_book(book_id):
 
 
 @books_bp.route("/search", methods=["GET"])
-def search_books():
+def search_books() -> Response:
     """
     Buscar livros por título e/ou categoria
     ---
@@ -86,4 +87,10 @@ def search_books():
               items:
                 type: object
     """
-    return jsonify({"results": []}), 200
+    title = request.args.get("title")
+    category = request.args.get("category")
+
+    controller = SearchBooksController()
+    books = controller.call_controller(title=title, category=category)
+
+    return jsonify({"results": [book.model_dump() for book in books]})
