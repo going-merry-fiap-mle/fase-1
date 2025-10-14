@@ -1,3 +1,6 @@
+from typing import Optional, Tuple
+from uuid import UUID
+
 from app.port.book_port import IBookRepository
 from app.domain.models import Book
 
@@ -7,5 +10,23 @@ class BookService:
     def __init__(self, book_repository: IBookRepository) -> None:
         self._book_repository = book_repository
 
-    def get_books(self) -> list[Book]:
-        return self._book_repository.get_books()
+    def get_books(self, page: int = 1, per_page: int = 10) -> Tuple[list[Book], int]:
+        return self._book_repository.get_books(page, per_page)
+
+    def create_book(
+        self,
+        title: str,
+        price: str,
+        rating: Optional[int],
+        availability: str,
+        category_id: UUID,
+        image_url: str
+    ) -> Book:
+        return self._book_repository.create_book(
+            title=title,
+            price=price,
+            rating=rating,
+            availability=availability,
+            category_id=category_id,
+            image_url=image_url
+        )

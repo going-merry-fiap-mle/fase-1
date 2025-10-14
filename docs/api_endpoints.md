@@ -8,21 +8,30 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 
 ### Listar todos os livros
 - **Endpoint:** `GET /api/v1/books`
-- **Descrição:** Retorna uma lista de livros disponíveis.
+- **Descrição:** Retorna uma lista paginada de livros disponíveis.
+- **Parâmetros:**
+  - `page` (query, integer, opcional, padrão: 1): Número da página
+  - `per_page` (query, integer, opcional, padrão: 10): Itens por página
 - **Resposta de exemplo:**
 ```json
 {
-  "books": [
+  "items": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "title": "A Light in the Attic",
-      "price": 51.77,
+      "price": "51.77",
       "rating": 3,
       "availability": "In stock",
       "category": "Poetry",
       "image_url": "https://books.toscrape.com/media/cache/2c/da/2cdad67c44b002e7ead0cc35693c0e8b.jpg"
     }
-  ]
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 10,
+    "total_items": 100,
+    "total_pages": 10
+  }
 }
 ```
 
@@ -57,7 +66,7 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "title": "A Light in the Attic",
-      "price": 51.77,
+      "price": "51.77",
       "rating": 3,
       "availability": "In stock",
       "category": "Poetry",
@@ -73,11 +82,14 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 
 ### Listar todas as categorias
 - **Endpoint:** `GET /api/v1/categories`
-- **Descrição:** Retorna uma lista de categorias disponíveis.
+- **Descrição:** Retorna uma lista paginada de categorias disponíveis.
+- **Parâmetros:**
+  - `page` (query, integer, opcional, padrão: 1): Número da página
+  - `per_page` (query, integer, opcional, padrão: 10): Itens por página
 - **Resposta de exemplo:**
 ```json
 {
-  "categories": [
+  "items": [
     {
       "id": "c1e1e1e1-e29b-41d4-a716-446655440000",
       "name": "Poetry"
@@ -90,7 +102,13 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
       "id": "c1e1e1e1-e29b-41d4-a716-446655440002",
       "name": "Fiction"
     }
-  ]
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 10,
+    "total_items": 50,
+    "total_pages": 5
+  }
 }
 ```
 
