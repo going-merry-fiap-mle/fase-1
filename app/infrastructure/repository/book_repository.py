@@ -11,7 +11,6 @@ class BookRepository(IBookRepository):
             price="10euro",
             rating=1,
             availability="In stock",
-            category="Poetry",
-            image="fakeimage.jpg",
+            image_url="fakeimage.jpg",
         )
         return [test]

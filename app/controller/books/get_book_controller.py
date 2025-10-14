@@ -19,8 +19,8 @@ class GetBookController:
                 price=b.price,
                 rating=b.rating,
                 availability=b.availability,
-                category=b.category,
-                image=b.image,
+                category=str(b.category_id),
+                image_url=b.image_url,
             )
             for b in books
         ]

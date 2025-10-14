@@ -7,4 +7,4 @@ class BookBase(BaseModel):
     rating: int
     availability: str
     category: str
-    image: str
+    image_url: str

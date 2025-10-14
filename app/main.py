@@ -9,6 +9,7 @@ from app.utils.environment_loader import EnvironmentLoader
 from app.utils.logger import AppLogger, LogManager
 
 
+
 class FlaskApp:
     def __init__(self) -> None:
         LogManager.setup("INFO")
@@ -24,6 +25,7 @@ class FlaskApp:
         self.app = Flask(__name__)
 
         self._configure_swagger()
+
 
         register_endpoints(self.app)
 
@@ -49,7 +51,6 @@ class FlaskApp:
     def run(self) -> None:
         self.logger.info("Iniciando a aplicação...", HTTPStatus.CONTINUE)
         self.app.run(debug=self.debug, host=self.host, port=self.port)
-
 
 flask_app = FlaskApp()
 
