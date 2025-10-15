@@ -8,4 +8,8 @@ class ScrapingBase(BaseModel):
     rating: Optional[int]
     availability: str
     category: str
-    image: str
+    image_url: str
+
+
+class Book(ScrapingBase):
+    pass

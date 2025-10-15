@@ -1,7 +1,7 @@
 from typing import Protocol, Optional, Tuple
 from uuid import UUID
 
-from app.domain.models import Book
+from app.domain.models.book_domain_model import Book
 
 
 class IBookRepository(Protocol):

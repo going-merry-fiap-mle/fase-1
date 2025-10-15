@@ -18,13 +18,12 @@ class GetBookController:
 
         books_dto = [
             BookBase(
-                id=str(book.id),
-                title=book.title,
-                price=str(book.price),
-                rating=book.rating,
-                availability=book.availability,
-                category=book.category.name if book.category else str(book.category_id),
-                image_url=book.image_url,
+                title=b.title,
+                price=str(b.price),
+                rating=b.rating if b.rating is not None else 0,
+                availability=b.availability,
+                category=b.category.name,
+                image_url=b.image_url,
             )
             for book in books
         ]

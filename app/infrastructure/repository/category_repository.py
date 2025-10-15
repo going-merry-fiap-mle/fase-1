@@ -1,36 +1,19 @@
-from typing import Tuple
-
-from app.domain.models import Category
-from app.infrastructure.database import db
-from app.port.category_port import ICategoryRepository
+from app.domain.models.category_domain_model import Category as DomainCategory
+from app.infrastructure.models.category import Category
+from app.infrastructure.session_manager import get_session
 
 
-class CategoryRepository(ICategoryRepository):
+class CategoryRepository:
 
-    def get_categories(self, page: int = 1, per_page: int = 10) -> Tuple[list[Category], int]:
-        session = db.get_session()
-        try:
-            query = session.query(Category)
-            total = query.count()
+    def get_or_create_by_name(self, name: str) -> DomainCategory:
+        with get_session() as session:
+            category_orm = session.query(Category).filter(Category.name == name).first()
 
-            offset = (page - 1) * per_page
-            categories = query.offset(offset).limit(per_page).all()
-
-            return categories, total
-        finally:
-            session.close()
-
-    def get_or_create_category(self, name: str) -> Category:
-        session = db.get_session()
-        try:
-            category = session.query(Category).filter_by(name=name).first()
-
-            if category is None:
-                category = Category(name=name)
-                session.add(category)
+            if category_orm is None:
+                domain_category = DomainCategory(name=name)
+                category_orm = Category.from_domain(domain_category)
+                session.add(category_orm)
                 session.commit()
-                session.refresh(category)
+                session.refresh(category_orm)
 
-            return category
-        finally:
-            session.close()
+            return category_orm.to_domain()
