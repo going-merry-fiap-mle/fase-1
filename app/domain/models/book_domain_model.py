@@ -1,6 +1,5 @@
 import uuid
 from decimal import Decimal
-from typing import Optional
 
 from app.domain.models.category_domain_model import Category
 
@@ -11,7 +10,7 @@ class Book:
         id: uuid.UUID,
         title: str,
         price: Decimal,
-        rating: Optional[int],
+        rating: int | None,
         availability: str,
         category: Category,
         image_url: str,

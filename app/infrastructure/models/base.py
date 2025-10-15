@@ -1,18 +1,18 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
+from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_column
 
 
-class TimestampMixin:
-    created_at = Column(
-        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+class Base(MappedAsDataclass, DeclarativeBase):
+    pass
+
+
+class TimestampMixin(MappedAsDataclass):
+    created_at: Mapped[datetime] = mapped_column(
+        default_factory=lambda: datetime.now(timezone.utc), init=False
     )
-    updated_at = Column(
-        DateTime,
-        default=lambda: datetime.now(timezone.utc),
+    updated_at: Mapped[datetime] = mapped_column(
+        default_factory=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-        nullable=False,
+        init=False,
     )

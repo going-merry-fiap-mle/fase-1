@@ -1,5 +1,3 @@
-from typing import Optional
-
 from app.infrastructure.adapters.book_adapter import BookAdapter
 from app.infrastructure.adapters.category_adapter import CategoryAdapter
 from app.schemas.book_schema import BookBase
@@ -14,7 +12,7 @@ class CreateBookController:
         self,
         title: str,
         price: str,
-        rating: Optional[int],
+        rating: int | None,
         availability: str,
         category_name: str,
         image_url: str

@@ -1,4 +1,9 @@
-from app.infrastructure.models.enums.admin_enum import UserRole
+import enum
+
+
+class UserRole(enum.Enum):
+    admin = "admin"
+    user = "user"
 
 
 class User:

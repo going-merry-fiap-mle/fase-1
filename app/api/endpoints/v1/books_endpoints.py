@@ -1,13 +1,17 @@
+from uuid import UUID
+
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
+from pydantic import ValidationError
 
 from app.controller.books.get_book_controller import GetBookController
+from app.schemas.pagination_schema import PaginationParams
 
 books_bp = Blueprint("books", __name__, url_prefix="/api/v1/books")
 
 
 @books_bp.route("", methods=["GET"])
-def list_books() -> Response:
+def list_books() -> Response | tuple[Response, int]:
     """
     Listar todos os livros com paginação
     ---
@@ -18,12 +22,12 @@ def list_books() -> Response:
         in: query
         type: integer
         default: 1
-        description: Número da página
+        description: "Número da página (mínimo: 1)"
       - name: per_page
         in: query
         type: integer
         default: 10
-        description: Itens por página
+        description: "Itens por página (mínimo: 1, máximo: 100)"
     responses:
       200:
         description: Lista paginada de livros
@@ -37,7 +41,7 @@ def list_books() -> Response:
                 properties:
                   id:
                     type: string
-                    description: ID do livro (UUID)
+                    description: "ID do livro (UUID)"
                   title:
                     type: string
                   price:
@@ -65,26 +69,23 @@ def list_books() -> Response:
         description: Parâmetros inválidos
     """
     try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-
-        if page < 1:
-            page = 1
-        if per_page < 1:
-            per_page = 10
-        if per_page > 100:
-            per_page = 100
+        pagination = PaginationParams(
+            page=request.args.get('page', 1, type=int),
+            per_page=request.args.get('per_page', 10, type=int)
+        )
 
         controller = GetBookController()
-        result = controller.call_controller(page=page, per_page=per_page)
+        result = controller.call_controller(page=pagination.page, per_page=pagination.per_page)
 
         return jsonify(result.model_dump())
+    except ValidationError as e:
+        return jsonify({"error": "Invalid parameters", "details": e.errors()}), 400
     except Exception as e:
         return jsonify({"error": "Internal server error", "message": str(e)}), 500
 
 
 @books_bp.route("/<string:book_id>", methods=["GET"])
-def get_book(book_id):
+def get_book(book_id: str) -> Response | tuple[Response, int]:
     """
     Buscar livro por ID
     ---
@@ -95,7 +96,7 @@ def get_book(book_id):
         in: path
         type: string
         required: true
-        description: ID do livro (UUID)
+        description: "ID do livro (UUID)"
     responses:
       200:
         description: Detalhes do livro
@@ -121,8 +122,6 @@ def get_book(book_id):
       400:
         description: UUID inválido
     """
-    from uuid import UUID
-
     try:
         UUID(book_id)
     except ValueError:
@@ -132,7 +131,7 @@ def get_book(book_id):
 
 
 @books_bp.route("/search", methods=["GET"])
-def search_books():
+def search_books() -> tuple[Response, int]:
     """
     Buscar livros por título e/ou categoria
     ---

@@ -1,6 +1,3 @@
-import math
-from typing import Tuple
-
 from app.infrastructure.adapters.book_adapter import BookAdapter
 from app.schemas.book_schema import BookBase
 from app.schemas.pagination_schema import PaginatedResponse, PaginationMeta
@@ -18,23 +15,21 @@ class GetBookController:
 
         books_dto = [
             BookBase(
-                title=b.title,
-                price=str(b.price),
-                rating=b.rating if b.rating is not None else 0,
-                availability=b.availability,
-                category=b.category.name,
-                image_url=b.image_url,
+                id=str(book.id),
+                title=book.title,
+                price=str(book.price),
+                rating=book.rating if book.rating is not None else 0,
+                availability=book.availability,
+                category=book.category.name,
+                image_url=book.image_url,
             )
             for book in books
         ]
 
-        total_pages = math.ceil(total / per_page) if per_page > 0 else 0
-
         pagination_meta = PaginationMeta(
             page=page,
             per_page=per_page,
-            total_items=total,
-            total_pages=total_pages
+            total_items=total
         )
 
         return PaginatedResponse(items=books_dto, pagination=pagination_meta)

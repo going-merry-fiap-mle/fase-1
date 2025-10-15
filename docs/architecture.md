@@ -125,13 +125,40 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma �
 - Pydantic como contrato de dados entre camadas e para a API.
 - Injeção de dependências manual no Controller para simplicidade; pode ser evoluída para um contêiner de IoC se necessário.
 
+## Melhorias Implementadas
+
+- **Arquitetura Hexagonal Completa**: Implementação de Books e Categories seguindo Ports & Adapters
+  - Domain Models: modelos de domínio puros sem dependências de infraestrutura
+  - Ports (Protocols): IBookRepository, ICategoryRepository, IScrapingRepository
+  - Adapters: BookAdapter, CategoryAdapter → BookRepository, CategoryRepository
+  - Use Cases: GetBookUseCase, CreateBookUseCase, GetCategoriesUseCase
+  - Controllers: GetBookController, CreateBookController, GetCategoriesController
+
+- **Correção de Import Circular**: UserRole movido de infrastructure para domain, eliminando dependência circular
+
+- **Tipagem Python 3.12+**:
+  - Uso de tipagem nativa (`list[T]`, `dict[K,V]`, `X | Y`) em vez de `typing.List`, `typing.Dict`, `typing.Union`
+  - Protocol para interfaces sem herança
+  - Generator de `collections.abc` em vez de `typing.Generator`
+  - Self de `typing` para métodos que retornam instância da própria classe
+
+- **Validação com Pydantic**:
+  - PaginationParams com Field validation (ge=1, le=100)
+  - PaginationMeta com @computed_field para total_pages
+  - Remoção de validações manuais if/else
+
+- **Gestão de Sessão SQLAlchemy**:
+  - Context manager `session_scope()` para gerenciamento automático de transações
+  - Uso de `session.flush()` em vez de commits manuais
+  - Rollback automático em caso de exceções
+
+- **Remoção de Código Legado**: arquivo models.py com modelos SQLAlchemy no domain removido
+
 ## Pontos de Evolução
 
-- Domínio: promover os placeholders (models/repositories/services) a contratos explícitos (interfaces/protocolos) e mover regras de negócio específicas para o núcleo do domínio.
-- Persistência: implementar repositórios concretos em infrastructure/database.py (ou adapters/) e fazer a aplicação usar apenas portas do domínio.
-- Endpoints de Books/Categories: integrar com casos de uso e repositórios reais (hoje retornam dados vazios como placeholder).
 - Frontend: consumir a API e exibir resultados em tempo real.
 - Testes: consolidar estrutura e ampliar cobertura em torno de contratos do domínio e adapters.
+- Endpoints de busca: implementar get_book(id) e search_books() que atualmente retornam placeholders
 
 ## Dependências Principais
 

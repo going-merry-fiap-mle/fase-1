@@ -1,26 +1,31 @@
 import uuid
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
-from sqlalchemy import Column, Index, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Index, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.domain.models.category_domain_model import Category as DomainCategory
 
 from .base import Base, TimestampMixin
+
+if TYPE_CHECKING:
+    from .book import Book
 
 
 class Category(TimestampMixin, Base):
     __tablename__ = "categories"
     __table_args__ = (Index("ix_categories_id", "id"),)
 
-    id = Column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
-    )
-    name = Column(String, unique=True, nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default_factory=uuid.uuid4, init=False)
+    name: Mapped[str] = mapped_column(String, unique=True)
+
+    books: Mapped[list["Book"]] = relationship(back_populates="category", init=False, default_factory=list)
 
     @classmethod
     def from_domain(cls, category: DomainCategory) -> Self:
-        return cls(id=category.id, name=category.name)  # type: ignore
+        instance = cls(name=category.name)
+        instance.id = category.id
+        return instance
 
     def to_domain(self) -> DomainCategory:
-        return DomainCategory(name=self.name, id=self.id)  # type: ignore
+        return DomainCategory(name=self.name, id=self.id)

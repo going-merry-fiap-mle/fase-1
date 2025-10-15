@@ -1,13 +1,15 @@
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
+from pydantic import ValidationError
 
 from app.controller.categories.get_categories_controller import GetCategoriesController
+from app.schemas.pagination_schema import PaginationParams
 
 categories_bp = Blueprint('categories', __name__, url_prefix='/api/v1/categories')
 
 
 @categories_bp.route('', methods=['GET'])
-def list_categories() -> Response:
+def list_categories() -> Response | tuple[Response, int]:
     """
     Listar todas as categorias com paginação
     ---
@@ -18,12 +20,12 @@ def list_categories() -> Response:
         in: query
         type: integer
         default: 1
-        description: Número da página
+        description: "Número da página (mínimo: 1)"
       - name: per_page
         in: query
         type: integer
         default: 10
-        description: Itens por página
+        description: "Itens por página (mínimo: 1, máximo: 100)"
     responses:
       200:
         description: Lista paginada de categorias
@@ -37,7 +39,7 @@ def list_categories() -> Response:
                 properties:
                   id:
                     type: string
-                    description: ID da categoria (UUID)
+                    description: "ID da categoria (UUID)"
                   name:
                     type: string
             pagination:
@@ -55,19 +57,16 @@ def list_categories() -> Response:
         description: Parâmetros inválidos
     """
     try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-
-        if page < 1:
-            page = 1
-        if per_page < 1:
-            per_page = 10
-        if per_page > 100:
-            per_page = 100
+        pagination = PaginationParams(
+            page=request.args.get('page', 1, type=int),
+            per_page=request.args.get('per_page', 10, type=int)
+        )
 
         controller = GetCategoriesController()
-        result = controller.call_controller(page=page, per_page=per_page)
+        result = controller.call_controller(page=pagination.page, per_page=pagination.per_page)
 
         return jsonify(result.model_dump())
+    except ValidationError as e:
+        return jsonify({"error": "Invalid parameters", "details": e.errors()}), 400
     except Exception as e:
         return jsonify({"error": "Internal server error", "message": str(e)}), 500

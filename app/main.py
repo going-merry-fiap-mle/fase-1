@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import Any
 
 from flasgger import Swagger
 from flask import Flask
@@ -28,12 +27,26 @@ class FlaskApp:
         register_endpoints(self.app)
 
     def _load_variables(self) -> None:
-        self.host = self.env_loader.get("HOST", "0.0.0.0")
-        self.port = self.env_loader.get("PORT", 5000)
-        self.debug = self.env_loader.get("DEBUG", False)
+        host = self.env_loader.get("HOST", "0.0.0.0")
+        port = self.env_loader.get("PORT", 5000)
+        debug = self.env_loader.get("DEBUG", False)
+
+        self.host = str(host) if host is not None else "0.0.0.0"
+
+        if isinstance(port, int):
+            self.port = port
+        elif isinstance(port, str):
+            try:
+                self.port = int(port)
+            except ValueError:
+                self.port = 5000
+        else:
+            self.port = 5000
+
+        self.debug = bool(debug) if debug is not None else False
 
     def _configure_swagger(self) -> None:
-        swagger_template: dict[str, Any] = {
+        swagger_template: dict[str, object] = {
             "swagger": "2.0",
             "info": {
                 "title": "API Livros FIAP",

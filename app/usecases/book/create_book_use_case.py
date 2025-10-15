@@ -1,5 +1,3 @@
-from typing import Optional
-
 from app.domain.models import Book
 from app.services.book_service import BookService
 from app.services.category_service import CategoryService
@@ -19,7 +17,7 @@ class CreateBookUseCase:
         self,
         title: str,
         price: str,
-        rating: Optional[int],
+        rating: int | None,
         availability: str,
         category_name: str,
         image_url: str
