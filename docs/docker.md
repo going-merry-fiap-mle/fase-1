@@ -34,20 +34,18 @@ Esta documentação descreve como configurar, executar e gerenciar a aplicação
 
 ### Subir todos os serviços
 - **Comando:** `docker-compose -f docker-compose.dev.yml up -d --build`
-- **Descrição:** Inicia backend e frontend com hot-reload ativado
+- **Descrição:** Inicia backend com hot-reload ativado
 - **URLs de acesso:**
   - Backend: http://localhost:5000
-  - Frontend: http://localhost:8501
 
 ### Subir serviços individualmente
 - **Backend apenas:** `docker-compose -f docker-compose.dev.yml up -d backend-dev`
-- **Frontend apenas:** `docker-compose -f docker-compose.dev.yml up -d frontend-dev`
 - **Observação:** Serviços são independentes e podem rodar separadamente
 
 ### Monitorar logs
 - **Comando:** `docker-compose -f docker-compose.dev.yml logs -f`
 - **Descrição:** Acompanha logs em tempo real de ambos os serviços
-- **Logs específicos:** Adicione `backend-dev` ou `frontend-dev` ao comando
+- **Logs específicos:** Adicione `backend-dev` ao comando
 
 ### Parar serviços
 - **Comando:** `docker-compose -f docker-compose.dev.yml down`
@@ -60,19 +58,18 @@ Esta documentação descreve como configurar, executar e gerenciar a aplicação
 
 ### Deploy completo
 - **Comando:** `docker-compose -f docker-compose.prod.yml up -d --build`
-- **Descrição:** Inicia backend (Gunicorn) e frontend otimizados
+- **Descrição:** Inicia backend (Gunicorn) otimizado
 - **Verificação:** `docker-compose -f docker-compose.prod.yml ps`
 
 ### Deploy individual
 - **Backend:** `docker-compose -f docker-compose.prod.yml up -d --build backend`
-- **Frontend:** `docker-compose -f docker-compose.prod.yml up -d --build frontend`
 - **Observação:** Cada serviço roda independentemente
 
 ### Comandos de gerenciamento
 - **Ver status:** `docker-compose -f docker-compose.prod.yml ps`
-- **Reiniciar serviço:** `docker-compose -f docker-compose.prod.yml restart [backend|frontend]`
-- **Parar serviço:** `docker-compose -f docker-compose.prod.yml stop [backend|frontend]`
-- **Ver logs:** `docker-compose -f docker-compose.prod.yml logs -f [backend|frontend]`
+- **Reiniciar serviço:** `docker-compose -f docker-compose.prod.yml restart backend`
+- **Parar serviço:** `docker-compose -f docker-compose.prod.yml stop backend`
+- **Ver logs:** `docker-compose -f docker-compose.prod.yml logs -f backend`
 
 ### Atualizar serviço específico
 ```bash
@@ -89,21 +86,19 @@ docker-compose -f docker-compose.prod.yml up -d --build backend
 - **Via arquivo .env.prod:**
 ```bash
 BACKEND_PORT=8080    # Backend na porta 8080
-FRONTEND_PORT=3000   # Frontend na porta 3000
 ```
 - **Via linha de comando:**
 ```bash
-BACKEND_PORT=8080 FRONTEND_PORT=3000 docker-compose -f docker-compose.prod.yml up -d
+BACKEND_PORT=8080 docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ### Monitoramento de recursos
 - **Comando:** `docker stats`
 - **Descrição:** Exibe uso de CPU e memória em tempo real
-- **Específico:** `docker stats fiap-backend-prod fiap-frontend-prod`
+- **Específico:** `docker stats fiap-backend-prod`
 
 ### Comandos de debug
 - **Entrar no container backend:** `docker exec -it fiap-backend-prod /bin/sh`
-- **Entrar no container frontend:** `docker exec -it fiap-frontend-prod /bin/sh`
 - **Ver logs detalhados:** `docker logs --details [container-name]`
 
 ---
@@ -136,8 +131,6 @@ Os containers já incluem Firefox ESR e Selenium configurados em modo headless.
 ### Dockerfiles
 - **Dockerfile.backend.dev** - Backend com hot-reload para desenvolvimento
 - **Dockerfile.backend.prod** - Backend otimizado com Gunicorn
-- **Dockerfile.frontend.dev** - Frontend com hot-reload para desenvolvimento
-- **Dockerfile.frontend.prod** - Frontend otimizado para produção
 
 ### Docker Compose
 - **docker-compose.dev.yml** - Orquestração para desenvolvimento
@@ -146,8 +139,6 @@ Os containers já incluem Firefox ESR e Selenium configurados em modo headless.
 ### Scripts de inicialização
 - **start-backend-dev.sh** - Inicia Flask em modo desenvolvimento
 - **start-backend-prod.sh** - Inicia Gunicorn em produção
-- **start-frontend-dev.sh** - Inicia Streamlit desenvolvimento
-- **start-frontend-prod.sh** - Inicia Streamlit produção
 
 ---
 
@@ -183,22 +174,10 @@ poetry lock
 # Rebuild backend
 docker-compose -f docker-compose.prod.yml build --no-cache backend
 ```
-
-### Frontend não conecta ao backend
-```bash
-# Verificar status dos serviços
-docker-compose -f docker-compose.prod.yml ps
-
-# Verificar logs
-docker-compose -f docker-compose.prod.yml logs backend
-docker-compose -f docker-compose.prod.yml logs frontend
-```
-
 ---
 
 ## Observações
 
-- Backend e Frontend rodam de forma independente
 - Arquivos `.env.dev` e `.env.prod` **nunca** devem ser commitados
 - Hot-reload disponível apenas em desenvolvimento
 - Gunicorn obrigatório para produção
