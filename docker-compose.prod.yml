@@ -1,0 +1,111 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.prod
+      cache_from:
+        - fiap-fase1-backend:prod
+    image: fiap-fase1-backend:prod
+    container_name: fiap-backend-prod
+    hostname: backend-prod
+    ports:
+      - "${BACKEND_PORT:-5000}:5000"
+    env_file:
+      - .env.prod
+    environment:
+      - TZ=America/Sao_Paulo
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=backend,env=prod"
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+    command: sh ./start-backend-prod.sh
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:5000/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fiap-prod-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 1G
+    # Shared memory para Firefox/Selenium
+    shm_size: "2gb"
+    labels:
+      com.fiap.service: "backend"
+      com.fiap.environment: "production"
+      com.fiap.team: "going-merry"
+      com.fiap.version: "1.0.0"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.prod
+      cache_from:
+        - fiap-fase1-frontend:prod
+    image: fiap-fase1-frontend:prod
+    container_name: fiap-frontend-prod
+    hostname: frontend-prod
+    ports:
+      - "${FRONTEND_PORT:-8501}:8501"
+    env_file:
+      - .env.prod
+    environment:
+      - API_URL=${API_URL:-http://backend:5000}
+      - PORT=8501
+      - TZ=America/Sao_Paulo
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=frontend,env=prod"
+    command: sh ./start-frontend-prod.sh
+    restart: unless-stopped
+    stop_grace_period: 10s
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8501 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fiap-prod-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    labels:
+      com.fiap.service: "frontend"
+      com.fiap.environment: "production"
+      com.fiap.team: "going-merry"
+      com.fiap.version: "1.0.0"
+
+networks:
+  fiap-prod-network:
+    driver: bridge
+    name: fiap-fase1-prod-network
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    labels:
+      com.fiap.network: "production"
+      com.fiap.team: "going-merry"

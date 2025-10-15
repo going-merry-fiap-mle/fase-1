@@ -1,0 +1,87 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-*
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Testes
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+.hypothesis/
+.tox/
+
+# Logs (não copiar logs existentes)
+*.log
+logs/
+
+# Dados locais grandes (serão montados como volumes)
+data/*.csv
+data/*.json
+data/*.xlsx
+data/*.db
+
+# Documentação (não necessária em runtime)
+*.md
+docs/
+LICENSE
+CHANGELOG
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.swp
+*.orig
+
+# Notebooks Jupyter (se houver)
+*.ipynb
+.ipynb_checkpoints/
+
+# Configurações locais
+.env.local
+.env.*.local
+
+# Cache do Poetry (desenvolvimento)
+poetry.lock.backup
+
+# Otimizações adicionais
+**/.git
+**/__pycache__
+**/.pytest_cache
+**/htmlcov
+**/*.pyc

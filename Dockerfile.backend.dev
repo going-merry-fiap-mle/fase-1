@@ -1,0 +1,63 @@
+FROM python:3.12-slim
+
+LABEL maintainer="FIAP - Equipe Going Merry"
+LABEL description="Backend Dev - Flask API com hot-reload"
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    POETRY_VERSION=1.8.3 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_VIRTUALENVS_CREATE=false \
+    PATH="/opt/poetry/bin:$PATH" \
+    PYTHONPATH=/app \
+    FLASK_ENV=development \
+    FLASK_DEBUG=1 \
+    MOZ_HEADLESS=1 \
+    DISPLAY=:99
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl \
+    vim \
+    git \
+    firefox-esr \
+    xvfb \
+    libgtk-3-0 \
+    libdbus-glib-1-2 \
+    libasound2 \
+    libxtst6 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    wget \
+    ca-certificates && \
+    curl -sSL https://install.python-poetry.org | python3 - && \ 
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml poetry.lock* ./
+
+RUN poetry lock
+
+RUN poetry install --no-interaction --no-ansi --no-root
+
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+
+RUN alembic upgrade head
+
+COPY start-backend-dev.sh ./
+
+RUN sed -i 's/\r$//' /app/start-backend-dev.sh && \
+    chmod +x /app/start-backend-dev.sh
+
+RUN mkdir -p /app/data /app/logs
+
+EXPOSE 5000
+
+CMD sh -c "Xvfb :99 -screen 0 1920x1080x24 & ./start-backend-dev.sh"

@@ -1,0 +1,59 @@
+services:
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.dev
+    image: fiap-fase1-backend:dev
+    container_name: fiap-backend-dev
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env.dev
+    volumes:
+      - ./app:/app/api
+      - ./data:/app/data
+      - ./logs:/app/logs
+    command: sh ./start-backend-dev.sh
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+    # Shared memory para Firefox/Selenium
+    shm_size: "2gb"
+    networks:
+      - fiap-dev-network
+
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.dev
+    image: fiap-fase1-frontend:dev
+    container_name: fiap-frontend-dev
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env.dev
+    environment:
+      - API_URL=${API_URL:-http://backend-dev:5000}
+    volumes:
+      - ./frontend:/app/frontend
+    command: sh ./start-frontend-dev.sh
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    networks:
+      - fiap-dev-network
+
+networks:
+  fiap-dev-network:
+    driver: bridge
+    name: fiap-fase1-dev-network

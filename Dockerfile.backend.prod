@@ -1,0 +1,82 @@
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+ENV POETRY_VERSION=1.8.3 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_VIRTUALENVS_CREATE=false \
+    PATH="/opt/poetry/bin:$PATH"
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    curl -sSL https://install.python-poetry.org | python3 - && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml poetry.lock* ./
+
+RUN poetry lock
+RUN poetry install --no-interaction --no-ansi --no-root --only main
+
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY start-backend-dev.sh ./
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    FLASK_ENV=production \
+    FLASK_DEBUG=0 \
+    MOZ_HEADLESS=1 \
+    DISPLAY=:99
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl \
+    firefox-esr \
+    xvfb \
+    libgtk-3-0 \
+    libdbus-glib-1-2 \
+    libasound2 \
+    libxtst6 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    wget \
+    ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+
+RUN alembic upgrade head
+
+COPY start-backend-prod.sh ./
+
+RUN sed -i 's/\r$//' /app/start-backend-prod.sh && \
+    chmod +x /app/start-backend-prod.sh && \
+    mkdir -p /app/data /app/logs
+
+RUN useradd -m -u 1000 apiuser && \
+    chown -R apiuser:apiuser /app
+
+USER apiuser
+
+EXPOSE 5000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5000/api/v1/health || exit 1
+
+CMD sh -c "Xvfb :99 -screen 0 1920x1080x24 & ./start-backend-prod.sh"
