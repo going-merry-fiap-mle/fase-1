@@ -56,7 +56,7 @@ poetry lock
 # Configurar ambiente
 cp .env.prod.example .env.prod
 
-# Subir aplicações otimizadas
+# Subir backend otimizado
 docker-compose -f docker-compose.prod.yml up -d --build
 
 # Acessar aplicação
