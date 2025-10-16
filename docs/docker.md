@@ -40,7 +40,7 @@ Esta documentação descreve como configurar, executar e gerenciar a aplicação
 
 ### Subir serviços individualmente
 - **Backend apenas:** `docker-compose -f docker-compose.dev.yml up -d backend-dev`
-- **Observação:** Serviços são independentes e podem rodar separadamente
+- **Observação:** O backend roda de forma independente
 
 ### Monitorar logs
 - **Comando:** `docker-compose -f docker-compose.dev.yml logs -f`
