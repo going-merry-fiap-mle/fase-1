@@ -33,4 +33,8 @@ class Database:
             session.close()
 
     def _load_variables(self) -> None:
-        self._db_url = self._env_loader.get("DATABASE_URL", "sqlite:///:memory:")
+        db_url = str(self._env_loader.get("DATABASE_URL", "sqlite:///:memory:"))
+        # SQLAlchemy 1.4+ requires 'postgresql://' instead of 'postgres://'
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        self._db_url = db_url

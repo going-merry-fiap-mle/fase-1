@@ -35,16 +35,21 @@ def test_convert_to_domain_books_creates_domain_models():
 
 
 def test_book_repository_to_domain_conversion():
+    book_id = uuid.uuid4()
+    category_id = uuid.uuid4()
+
+    orm_category = ORMCategory(name="Cat")
+    orm_category.id = category_id
+
     orm_book = ORMBook(
-        id=uuid.uuid4(),
         title="Title",
         price=Decimal("12.34"),
-        rating=5,
         availability="In stock",
+        category_id=category_id,
         image_url="img.jpg",
+        rating=5,
     )
-
-    orm_category = ORMCategory(id=uuid.uuid4(), name="Cat")
+    orm_book.id = book_id
     orm_book.category = orm_category
 
     repo = BookRepository()
@@ -53,12 +58,14 @@ def test_book_repository_to_domain_conversion():
         "app.infrastructure.repository.book_repository.get_session"
     ) as get_session:
         session = MagicMock()
-        session.query.return_value.all.return_value = [orm_book]
+        session.query.return_value.count.return_value = 1
+        session.query.return_value.offset.return_value.limit.return_value.all.return_value = [orm_book]
         get_session.return_value.__enter__.return_value = session
 
-        books = repo.get_books()
+        books, total = repo.get_books()
 
         assert len(books) == 1
+        assert total == 1
         b = books[0]
         assert isinstance(b, DomainBook)
         assert b.title == "Title"
@@ -92,11 +99,18 @@ def test_scraping_repository_bulk_insert_creates_categories_and_inserts_books():
         mock_cat_repo.get_or_create_by_name.return_value = returned_cat
 
         with patch("app.infrastructure.models.book.Book.from_domain") as from_domain:
-            from_domain.return_value = ORMBook()
+            mock_orm_book = ORMBook(
+                title="Mock",
+                price=Decimal("1.00"),
+                availability="In stock",
+                category_id=uuid.uuid4(),
+                image_url="mock.jpg",
+            )
+            from_domain.return_value = mock_orm_book
 
             repo.scraping_bulk_insert([domain_book])
 
             mock_cat_repo.get_or_create_by_name.assert_called_once_with("Fiction")
 
             session.bulk_save_objects.assert_called_once()
-            session.commit.assert_called_once()
+            session.flush.assert_called_once()

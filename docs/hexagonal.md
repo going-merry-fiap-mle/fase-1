@@ -3,7 +3,7 @@
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    API Layer (Driving Adapter)          │
-│              books_route.py (Flask Endpoint)            │
+│              books_endpoints.py (Flask Endpoint)        │
 └────────────────────┬────────────────────────────────────┘
                      │
                      ▼
@@ -22,14 +22,16 @@
 ┌─────────────────────────────────────────────────────────┐
 │                   Domain Layer (Core)                   │
 │        Service: BookService                             │
-│        Port: IBookRepository                            │
-│        Model: Book                                      │
+│        Port: IBookRepository (Protocol)                 │
+│        Model: Book (Domain Model)                       │
+│        Enum: UserRole (Domain Enum)                     │
 └────────────────────┬────────────────────────────────────┘
                      │
                      ▼
 ┌───────────────────────────────────────────────────────────────┐
 │            Infrastructure Layer (Driven Adapter)              │
-│   Adapter: BookRepositoryAdapter → Repository: BookRepository │
+│   Adapter: BookAdapter → Repository: BookRepository           │
+│   ORM Models: Book, Category, User (SQLAlchemy)              │
 └───────────────────────────────────────────────────────────────┘
 
 ```
