@@ -44,7 +44,7 @@ Esta documentação descreve como configurar, executar e gerenciar a aplicação
 
 ### Monitorar logs
 - **Comando:** `docker-compose -f docker-compose.dev.yml logs -f`
-- **Descrição:** Acompanha logs em tempo real de ambos os serviços
+- **Descrição:** Acompanha logs em tempo real do backend
 - **Logs específicos:** Adicione `backend-dev` ao comando
 
 ### Parar serviços
