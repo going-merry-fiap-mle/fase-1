@@ -2,7 +2,6 @@ import inspect
 import logging
 import os
 from http import HTTPStatus
-from typing import Optional
 
 
 class LogFormatter(logging.Formatter):
@@ -16,7 +15,7 @@ class LogFormatter(logging.Formatter):
 
 class LogManager:
     @staticmethod
-    def setup(level: Optional[str] = None) -> None:
+    def setup(level: str | None = None) -> None:
         level_name = (level or os.getenv("LOG_LEVEL", "INFO")).upper()
         log_level = logging._nameToLevel.get(level_name, logging.INFO)
 

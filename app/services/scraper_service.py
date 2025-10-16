@@ -73,12 +73,8 @@ class ScraperService:
 
         price = book_element.find_element(By.CLASS_NAME, "price_color").text
 
-        rating_str = (
-            book_element.find_element(By.CSS_SELECTOR, "p.star-rating")
-            .get_attribute("class")
-            .replace("star-rating", "")
-            .strip()
-        )
+        rating_class = book_element.find_element(By.CSS_SELECTOR, "p.star-rating").get_attribute("class")
+        rating_str = rating_class.replace("star-rating", "").strip() if rating_class else ""
         rating = rating_map.get(rating_str, 0)
 
         availability = book_element.find_element(
@@ -96,12 +92,12 @@ class ScraperService:
         self.web_driver.driver.back()
 
         return ScrapingBase(
-            title=title,
+            title=title or "Unknown",
             price=price,
             rating=rating,
             availability=availability,
             category=category,
-            image_url=img_url,
+            image_url=img_url or "",
         )
 
     def save_books(self, books: list[ScrapingBase]) -> None:
@@ -121,7 +117,7 @@ class ScraperService:
                 id=uuid.uuid4(),
                 title=book.title,
                 price=price,
-                rating=book.rating if book.rating > 0 else None,
+                rating=book.rating if book.rating is not None and book.rating > 0 else None,
                 availability=book.availability,
                 category=category,
                 image_url=book.image_url,
