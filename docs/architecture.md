@@ -124,6 +124,11 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma �
 - Swagger/Flasgger para documentação dos endpoints.
 - Pydantic como contrato de dados entre camadas e para a API.
 - Injeção de dependências manual no Controller para simplicidade; pode ser evoluída para um contêiner de IoC se necessário.
+- **Tratamento Centralizado de Erros**: Implementado em `app/main.py` via `@app.errorhandler()` para:
+  - `ValidationError` (Pydantic): retorna 400 com detalhes de validação
+  - `ValueError`: retorna 400 com mensagem de erro (ex: UUID inválido)
+  - `Exception` (genérico): retorna 500 com mensagem de erro interno
+  - Endpoints não precisam de try/except, os erros são tratados centralmente
 
 ## Melhorias Implementadas
 

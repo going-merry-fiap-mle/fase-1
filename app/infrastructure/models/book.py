@@ -1,16 +1,22 @@
 import uuid
-from decimal import Decimal
-from typing import TYPE_CHECKING, Self
+from typing import Self
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import (
+    DECIMAL,
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    UniqueConstraint,
+)
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from app.domain.models.book_domain_model import Book as DomainBook
 
 from .base import Base, TimestampMixin
-
-if TYPE_CHECKING:
-    from .category import Category
 
 
 class Book(TimestampMixin, Base):
@@ -26,38 +32,41 @@ class Book(TimestampMixin, Base):
         Index("ix_books_availability", "availability"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default_factory=uuid.uuid4, init=False)
-    title: Mapped[str]
-    price: Mapped[Decimal]
-    availability: Mapped[str]
-    category_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("categories.id"))
-    image_url: Mapped[str]
-    rating: Mapped[int | None] = mapped_column(default=None)
+    id = Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False
+    )
+    title = Column(String, nullable=False)
+    price = Column(DECIMAL(10, 2), nullable=False)
+    rating = Column(Integer, nullable=True)
+    availability = Column(String, nullable=False)
+    category_id = Column(
+        UUID(as_uuid=True), ForeignKey("categories.id"), nullable=False
+    )
+    image_url = Column(String, nullable=False)
 
-    category: Mapped["Category"] = relationship(back_populates="books", init=False)
+    category = relationship("Category", backref="books")
 
     @classmethod
     def from_domain(cls, book: DomainBook) -> Self:
-        instance = cls(
-            title=book.title,
-            price=book.price,
-            availability=book.availability,
-            category_id=book.category.id,
-            image_url=book.image_url,
-            rating=book.rating,
+        return cls(
+            id=book.id,  # type: ignore
+            title=book.title,  # type: ignore
+            price=book.price,  # type: ignore
+            rating=book.rating,  # type: ignore
+            availability=book.availability,  # type: ignore
+            category_id=book.category.id,  # type: ignore
+            image_url=book.image_url,  # type: ignore
         )
-        instance.id = book.id
-        return instance
 
     def to_domain(self) -> DomainBook:
         from app.domain.models.category_domain_model import Category as DomainCategory
 
         return DomainBook(
-            id=self.id,
-            title=self.title,
-            price=self.price,
-            rating=self.rating,
-            availability=self.availability,
-            category=DomainCategory(name=self.category.name, id=self.category.id),
-            image_url=self.image_url,
+            id=self.id,  # type: ignore
+            title=self.title,  # type: ignore
+            price=self.price,  # type: ignore
+            rating=self.rating,  # type: ignore
+            availability=self.availability,  # type: ignore
+            category=DomainCategory(name=self.category.name, id=self.category.id),  # type: ignore
+            image_url=self.image_url,  # type: ignore
         )

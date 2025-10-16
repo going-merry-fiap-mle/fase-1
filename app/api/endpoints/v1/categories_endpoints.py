@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
-from pydantic import ValidationError
 
 from app.controller.categories.get_categories_controller import GetCategoriesController
 from app.schemas.pagination_schema import PaginationParams
@@ -56,17 +55,12 @@ def list_categories() -> Response | tuple[Response, int]:
       400:
         description: Parâmetros inválidos
     """
-    try:
-        pagination = PaginationParams(
-            page=request.args.get('page', 1, type=int),
-            per_page=request.args.get('per_page', 10, type=int)
-        )
+    pagination = PaginationParams(
+        page=request.args.get('page', 1, type=int),
+        per_page=request.args.get('per_page', 10, type=int)
+    )
 
-        controller = GetCategoriesController()
-        result = controller.call_controller(page=pagination.page, per_page=pagination.per_page)
+    controller = GetCategoriesController()
+    result = controller.call_controller(page=pagination.page, per_page=pagination.per_page)
 
-        return jsonify(result.model_dump())
-    except ValidationError as e:
-        return jsonify({"error": "Invalid parameters", "details": e.errors()}), 400
-    except Exception as e:
-        return jsonify({"error": "Internal server error", "message": str(e)}), 500
+    return jsonify(result.model_dump())

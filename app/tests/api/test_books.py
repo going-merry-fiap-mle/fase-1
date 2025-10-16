@@ -31,7 +31,8 @@ def test_books_id_endpoint_invalid_uuid(client):
 
     data = response.get_json()
     assert 'error' in data
-    assert data['error'] == 'Invalid UUID format'
+    assert data['error'] == 'Invalid value'
+    assert 'message' in data
 
 
 def test_books_id_endpoint_integer_not_accepted(client):

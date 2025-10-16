@@ -1,33 +1,40 @@
-import os
 from collections.abc import Generator
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:admin@localhost:5432/postgres")
+from app.utils import AppLogger, EnvironmentLoader
 
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 class Database:
-    def __init__(self, db_url: str = DATABASE_URL):
-        self.engine = create_engine(db_url, echo=False)
-        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+    def __init__(self) -> None:
+        self._logger = AppLogger("Database")
 
-    def get_session(self) -> Session:
-        return self.SessionLocal()
+        self._env_loader = EnvironmentLoader()
+        self._db_url: str
+        self._load_variables()
+
+        self.engine = create_engine(self._db_url, echo=False)
+        self._session_factory = sessionmaker(
+            autocommit=False, autoflush=False, bind=self.engine
+        )
 
     @contextmanager
     def session_scope(self) -> Generator[Session, None, None]:
-        session = self.SessionLocal()
+        session: Session = self._session_factory()
         try:
             yield session
-            session.commit()
-        except Exception:
+        except Exception as e:
             session.rollback()
+            self._logger.error(f"Erro ao gerenciar sessão: {str(e)}")
             raise
         finally:
             session.close()
 
-db = Database()
+    def _load_variables(self) -> None:
+        db_url = str(self._env_loader.get("DATABASE_URL", "sqlite:///:memory:"))
+        # SQLAlchemy 1.4+ requires 'postgresql://' instead of 'postgres://'
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        self._db_url = db_url

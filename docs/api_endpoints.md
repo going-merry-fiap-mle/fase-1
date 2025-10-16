@@ -228,6 +228,45 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 
 ---
 
+## Respostas de Erro
+
+A API possui tratamento centralizado de erros que retorna respostas padronizadas:
+
+### Erro de Validação (400)
+Retornado quando parâmetros inválidos são fornecidos (ex: paginação fora dos limites).
+```json
+{
+  "error": "Invalid parameters",
+  "details": [
+    {
+      "type": "value_error",
+      "loc": ["page"],
+      "msg": "Value must be greater than or equal to 1"
+    }
+  ]
+}
+```
+
+### Erro de Valor (400)
+Retornado quando um valor inválido é fornecido (ex: UUID mal formatado).
+```json
+{
+  "error": "Invalid value",
+  "message": "badly formed hexadecimal UUID string"
+}
+```
+
+### Erro Interno do Servidor (500)
+Retornado quando ocorre um erro inesperado no servidor.
+```json
+{
+  "error": "Internal server error",
+  "message": "Descrição do erro"
+}
+```
+
+---
+
 ## Observações
 - Todos os endpoints retornam respostas no formato JSON, exceto `/apidocs/`, que retorna uma interface web.
 - IDs são UUIDs (ex: `550e8400-e29b-41d4-a716-446655440000`).

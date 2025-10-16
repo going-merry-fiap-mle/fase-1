@@ -2,7 +2,6 @@ from uuid import UUID
 
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
-from pydantic import ValidationError
 
 from app.controller.books.get_book_controller import GetBookController
 from app.schemas.pagination_schema import PaginationParams
@@ -68,20 +67,15 @@ def list_books() -> Response | tuple[Response, int]:
       400:
         description: Parâmetros inválidos
     """
-    try:
-        pagination = PaginationParams(
-            page=request.args.get('page', 1, type=int),
-            per_page=request.args.get('per_page', 10, type=int)
-        )
+    pagination = PaginationParams(
+        page=request.args.get('page', 1, type=int),
+        per_page=request.args.get('per_page', 10, type=int)
+    )
 
-        controller = GetBookController()
-        result = controller.call_controller(page=pagination.page, per_page=pagination.per_page)
+    controller = GetBookController()
+    result = controller.call_controller(page=pagination.page, per_page=pagination.per_page)
 
-        return jsonify(result.model_dump())
-    except ValidationError as e:
-        return jsonify({"error": "Invalid parameters", "details": e.errors()}), 400
-    except Exception as e:
-        return jsonify({"error": "Internal server error", "message": str(e)}), 500
+    return jsonify(result.model_dump())
 
 
 @books_bp.route("/<string:book_id>", methods=["GET"])
@@ -122,11 +116,7 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
       400:
         description: UUID inválido
     """
-    try:
-        UUID(book_id)
-    except ValueError:
-        return jsonify({"error": "Invalid UUID format", "message": "The provided ID is not a valid UUID"}), 400
-
+    UUID(book_id)
     return jsonify({"id": book_id, "book": None}), 200
 
 
