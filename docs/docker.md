@@ -63,7 +63,7 @@ Esta documentação descreve como configurar, executar e gerenciar a aplicação
 
 ### Deploy individual
 - **Backend:** `docker-compose -f docker-compose.prod.yml up -d --build backend`
-- **Observação:** Cada serviço roda independentemente
+- **Observação:** O backend roda independentemente
 
 ### Comandos de gerenciamento
 - **Ver status:** `docker-compose -f docker-compose.prod.yml ps`
