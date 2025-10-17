@@ -24,8 +24,6 @@ class Database:
             self._db_url: str
             self._load_variables()
 
-            # Pooling parameters are only valid for certain database dialects
-            # SQLite uses SingletonThreadPool which doesn't accept these parameters
             engine_kwargs: dict[str, Any] = {"echo": False}
             if not self._db_url.startswith("sqlite"):
                 engine_kwargs.update(
@@ -33,7 +31,6 @@ class Database:
                         "pool_size": 5,
                         "max_overflow": 10,
                         "pool_recycle": 3600,
-                        # Avoid stale connections in long-running apps
                         "pool_pre_ping": True,
                     }
                 )
