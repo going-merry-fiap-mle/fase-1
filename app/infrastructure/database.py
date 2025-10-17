@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Self
+from typing import Any, Self
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -11,7 +11,7 @@ from app.utils import AppLogger, EnvironmentLoader
 class Database:
     _instance = None
 
-    def __new__(cls, *args, **kwargs) -> Self:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         if cls._instance is None:
             cls._instance = super(Database, cls).__new__(cls, *args, **kwargs)
         return cls._instance
@@ -24,13 +24,21 @@ class Database:
             self._db_url: str
             self._load_variables()
 
-            self.engine = create_engine(
-                self._db_url,
-                echo=False,
-                pool_size=5,
-                max_overflow=10,
-                pool_recycle=3600,
-            )
+            # Pooling parameters are only valid for certain database dialects
+            # SQLite uses SingletonThreadPool which doesn't accept these parameters
+            engine_kwargs: dict[str, Any] = {"echo": False}
+            if not self._db_url.startswith("sqlite"):
+                engine_kwargs.update(
+                    {
+                        "pool_size": 5,
+                        "max_overflow": 10,
+                        "pool_recycle": 3600,
+                        # Avoid stale connections in long-running apps
+                        "pool_pre_ping": True,
+                    }
+                )
+
+            self.engine = create_engine(self._db_url, **engine_kwargs)
             self._session_factory = sessionmaker(
                 autocommit=False, autoflush=False, bind=self.engine
             )
