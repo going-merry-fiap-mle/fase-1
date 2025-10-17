@@ -44,10 +44,6 @@ Este projeto segue princípios da Arquitetura Hexagonal (Ports & Adapters), prom
   - Onde fica: app/utils
   - Auxiliares como carregamento de variáveis de ambiente e infraestrutura de logs (EnvironmentLoader, AppLogger/LogManager).
 
-- Frontend
-  - Onde fica: frontend/
-  - Componente simples em Streamlit (frontend/app.py) para visualização.
-
 - Testes
   - Onde fica: app/tests e app/unittest
   - Testes organizados por área (API, controller, infrastructure, services, usecases e utils).
@@ -87,8 +83,6 @@ Este projeto segue princípios da Arquitetura Hexagonal (Ports & Adapters), prom
 - docs/
   - api_endpoints.md
   - architecture.md (este documento)
-- frontend/
-  - app.py (Streamlit)
 - tests e unittest
 
 ## Fluxo de Requisição (ex.: Web Scraping)
@@ -108,7 +102,7 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma �
 
 - Portas (contratos/intenções)
   - Contratos de repositório e serviços de domínio em app/domain (a serem detalhados conforme a evolução).
-  - Contratos de dados com Pydantic (app/schemas) para padronização nas fronteiras.
+  - Contratos de dados com Pydantic (app/schemas).
 
 - Adapters (implementações técnicas)
   - WebDriverInfrastructure: integração com navegador via Selenium/GeckoDriverManager, headless fora de dev.
@@ -160,8 +154,9 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma �
 - **Remoção de Código Legado**: arquivo models.py com modelos SQLAlchemy no domain removido
 
 ## Pontos de Evolução
-
-- Frontend: consumir a API e exibir resultados em tempo real.
+- Domínio: promover os placeholders (models/repositories/services) a contratos explícitos (interfaces/protocolos) e mover regras de negócio específicas para o núcleo do domínio.
+- Persistência: implementar repositórios concretos em infrastructure/database.py (ou adapters/) e fazer a aplicação usar apenas portas do domínio.
+- Endpoints de Books/Categories: integrar com casos de uso e repositórios reais (hoje retornam dados vazios como placeholder).
 - Testes: consolidar estrutura e ampliar cobertura em torno de contratos do domínio e adapters.
 - Endpoints de busca: implementar get_book(id) e search_books() que atualmente retornam placeholders
 

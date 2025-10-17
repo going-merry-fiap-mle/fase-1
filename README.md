@@ -2,11 +2,10 @@
 
 ## Descrição do Projeto e Arquitetura
 
-Este projeto tem como objetivo realizar web scraping no site https://books.toscrape.com/, extrair dados dos livros e disponibilizá-los via uma API REST desenvolvida em Flask. O frontend será feito em Streamlit para visualização dos dados. A arquitetura segue o padrão hexagonal, separando domínio, aplicação e infraestrutura, facilitando testes e manutenção.
+Este projeto tem como objetivo realizar web scraping no site https://books.toscrape.com/, extrair dados dos livros e disponibilizá-los via uma API REST desenvolvida em Flask.
 
 ### Estrutura de Pastas
 - **api/**: Backend Flask
-- **frontend/**: Streamlit (dashboard)
 - **scripts/**: Scripts de scraping e utilitários
 - **data/**: Armazenamento dos dados extraídos (CSVs, etc)
 - **docs/**: Documentação e diagramas
@@ -33,10 +32,6 @@ Este projeto tem como objetivo realizar web scraping no site https://books.toscr
    ```bash
    poetry run python api/main.py
    ```
-6. Execute o frontend Streamlit:
-   ```bash
-   poetry run streamlit run frontend/app.py
-   ```
 
 ## Como rodar o projeto com Docker
 
@@ -45,12 +40,11 @@ Este projeto tem como objetivo realizar web scraping no site https://books.toscr
 # Configurar ambiente
 cp .env.dev.example .env.dev
 
-# Subir backend e frontend com hot-reload
+# Subir backend com hot-reload
 docker-compose -f docker-compose.dev.yml up -d --build
 
-# Acessar aplicações
+# Acessar aplicação
 # Backend: http://localhost:5000
-# Frontend: http://localhost:8501
 ```
 
 ### Quick Start - Produção
@@ -62,12 +56,11 @@ poetry lock
 # Configurar ambiente
 cp .env.prod.example .env.prod
 
-# Subir aplicações otimizadas
+# Subir backend otimizado
 docker-compose -f docker-compose.prod.yml up -d --build
 
-# Acessar aplicações
+# Acessar aplicação
 # Backend: http://localhost:5000
-# Frontend: http://localhost:8501
 ```
 
 **Para documentação completa do Docker, incluindo deploy individual, configurações avançadas e troubleshooting, consulte: [docs/docker.md](docs/docker.md)**
