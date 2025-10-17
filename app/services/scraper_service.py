@@ -1,17 +1,27 @@
+import uuid
+from decimal import Decimal
 from http import HTTPStatus
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
+from app.domain.models.book_domain_model import Book as DomainBook
+from app.domain.models.category_domain_model import Category as DomainCategory
 from app.infrastructure.webdriver_infrastructure import WebDriverInfrastructure
+from app.port.scraping_port import IScrapingRepository
 from app.schemas.scraping_schema import ScrapingBase
 from app.utils.logger import AppLogger
 
 
 class ScraperService:
 
-    def __init__(self, web_driver: WebDriverInfrastructure) -> None:
+    def __init__(
+        self,
+        web_driver: WebDriverInfrastructure,
+        scraping_repository: IScrapingRepository,
+    ) -> None:
         self.web_driver = web_driver
+        self._scraping_repository = scraping_repository
         self.logger = AppLogger("ScraperService")
         self.endless_loop_index: int = -1
 
@@ -63,12 +73,8 @@ class ScraperService:
 
         price = book_element.find_element(By.CLASS_NAME, "price_color").text
 
-        rating_str = (
-            book_element.find_element(By.CSS_SELECTOR, "p.star-rating")
-            .get_attribute("class")
-            .replace("star-rating", "")
-            .strip()
-        )
+        rating_class = book_element.find_element(By.CSS_SELECTOR, "p.star-rating").get_attribute("class")
+        rating_str = rating_class.replace("star-rating", "").strip() if rating_class else ""
         rating = rating_map.get(rating_str, 0)
 
         availability = book_element.find_element(
@@ -86,10 +92,36 @@ class ScraperService:
         self.web_driver.driver.back()
 
         return ScrapingBase(
-            title=title,
+            title=title or "Unknown",
             price=price,
             rating=rating,
             availability=availability,
             category=category,
-            image=img_url,
+            image_url=img_url or "",
         )
+
+    def save_books(self, books: list[ScrapingBase]) -> None:
+        domain_books = self._convert_to_domain_books(books)
+        self._scraping_repository.scraping_bulk_insert(domain_books)
+
+    def _convert_to_domain_books(self, books: list[ScrapingBase]) -> list[DomainBook]:
+        domain_books: list[DomainBook] = []
+
+        for book in books:
+            price_str = book.price.replace("£", "").strip()
+            price = Decimal(price_str)
+
+            category = DomainCategory(name=book.category)
+
+            domain_book = DomainBook(
+                id=uuid.uuid4(),
+                title=book.title,
+                price=price,
+                rating=book.rating if book.rating is not None and book.rating > 0 else None,
+                availability=book.availability,
+                category=category,
+                image_url=book.image_url,
+            )
+            domain_books.append(domain_book)
+
+        return domain_books

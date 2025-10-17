@@ -26,7 +26,7 @@ class TestScrapingUseCase(unittest.TestCase):
             rating=rating,
             availability=availability,
             category=category,
-            image=image,
+            image_url=image,
         )
 
     def test_execute_returns_list_from_service_unchanged(self):

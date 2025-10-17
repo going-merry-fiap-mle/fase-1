@@ -44,10 +44,6 @@ Este projeto segue princípios da Arquitetura Hexagonal (Ports & Adapters), prom
   - Onde fica: app/utils
   - Auxiliares como carregamento de variáveis de ambiente e infraestrutura de logs (EnvironmentLoader, AppLogger/LogManager).
 
-- Frontend
-  - Onde fica: frontend/
-  - Componente simples em Streamlit (frontend/app.py) para visualização.
-
 - Testes
   - Onde fica: app/tests e app/unittest
   - Testes organizados por área (API, controller, infrastructure, services, usecases e utils).
@@ -87,8 +83,6 @@ Este projeto segue princípios da Arquitetura Hexagonal (Ports & Adapters), prom
 - docs/
   - api_endpoints.md
   - architecture.md (este documento)
-- frontend/
-  - app.py (Streamlit)
 - tests e unittest
 
 ## Fluxo de Requisição (ex.: Web Scraping)
@@ -108,7 +102,7 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma �
 
 - Portas (contratos/intenções)
   - Contratos de repositório e serviços de domínio em app/domain (a serem detalhados conforme a evolução).
-  - Contratos de dados com Pydantic (app/schemas) para padronização nas fronteiras.
+  - Contratos de dados com Pydantic (app/schemas).
 
 - Adapters (implementações técnicas)
   - WebDriverInfrastructure: integração com navegador via Selenium/GeckoDriverManager, headless fora de dev.
@@ -124,14 +118,47 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma �
 - Swagger/Flasgger para documentação dos endpoints.
 - Pydantic como contrato de dados entre camadas e para a API.
 - Injeção de dependências manual no Controller para simplicidade; pode ser evoluída para um contêiner de IoC se necessário.
+- **Tratamento Centralizado de Erros**: Implementado em `app/main.py` via `@app.errorhandler()` para:
+  - `ValidationError` (Pydantic): retorna 400 com detalhes de validação
+  - `ValueError`: retorna 400 com mensagem de erro (ex: UUID inválido)
+  - `Exception` (genérico): retorna 500 com mensagem de erro interno
+  - Endpoints não precisam de try/except, os erros são tratados centralmente
+
+## Melhorias Implementadas
+
+- **Arquitetura Hexagonal Completa**: Implementação de Books e Categories seguindo Ports & Adapters
+  - Domain Models: modelos de domínio puros sem dependências de infraestrutura
+  - Ports (Protocols): IBookRepository, ICategoryRepository, IScrapingRepository
+  - Adapters: BookAdapter, CategoryAdapter → BookRepository, CategoryRepository
+  - Use Cases: GetBookUseCase, CreateBookUseCase, GetCategoriesUseCase
+  - Controllers: GetBookController, CreateBookController, GetCategoriesController
+
+- **Correção de Import Circular**: UserRole movido de infrastructure para domain, eliminando dependência circular
+
+- **Tipagem Python 3.12+**:
+  - Uso de tipagem nativa (`list[T]`, `dict[K,V]`, `X | Y`) em vez de `typing.List`, `typing.Dict`, `typing.Union`
+  - Protocol para interfaces sem herança
+  - Generator de `collections.abc` em vez de `typing.Generator`
+  - Self de `typing` para métodos que retornam instância da própria classe
+
+- **Validação com Pydantic**:
+  - PaginationParams com Field validation (ge=1, le=100)
+  - PaginationMeta com @computed_field para total_pages
+  - Remoção de validações manuais if/else
+
+- **Gestão de Sessão SQLAlchemy**:
+  - Context manager `session_scope()` para gerenciamento automático de transações
+  - Uso de `session.flush()` em vez de commits manuais
+  - Rollback automático em caso de exceções
+
+- **Remoção de Código Legado**: arquivo models.py com modelos SQLAlchemy no domain removido
 
 ## Pontos de Evolução
-
 - Domínio: promover os placeholders (models/repositories/services) a contratos explícitos (interfaces/protocolos) e mover regras de negócio específicas para o núcleo do domínio.
 - Persistência: implementar repositórios concretos em infrastructure/database.py (ou adapters/) e fazer a aplicação usar apenas portas do domínio.
 - Endpoints de Books/Categories: integrar com casos de uso e repositórios reais (hoje retornam dados vazios como placeholder).
-- Frontend: consumir a API e exibir resultados em tempo real.
 - Testes: consolidar estrutura e ampliar cobertura em torno de contratos do domínio e adapters.
+- Endpoints de busca: implementar get_book(id) e search_books() que atualmente retornam placeholders
 
 ## Dependências Principais
 

@@ -1,6 +1,5 @@
 import os
 from http import HTTPStatus
-from typing import Any
 
 from dotenv import load_dotenv
 
@@ -13,7 +12,7 @@ class EnvironmentLoader:
         self.warn_on_default = warn_on_default
         load_dotenv()
 
-    def get(self, key: str, default: Any = None, required: bool = False) -> Any:
+    def get(self, key: str, default: str | int | bool | None = None, required: bool = False) -> str | int | bool | None:
 
         value = os.getenv(key, default)
 
@@ -22,7 +21,7 @@ class EnvironmentLoader:
 
         return value
 
-    def __warn(self, key: str, default: Any) -> None:
+    def __warn(self, key: str, default: str | int | bool | None) -> None:
         self.logger.warning(
             f"Environment variable '{key}' is not set. Using default value: {default}.",
             HTTPStatus.CONTINUE,
