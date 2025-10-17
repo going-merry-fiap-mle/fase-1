@@ -1,5 +1,6 @@
 from collections.abc import Generator
 from contextlib import contextmanager
+from typing import Self
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -8,17 +9,31 @@ from app.utils import AppLogger, EnvironmentLoader
 
 
 class Database:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs) -> Self:
+        if cls._instance is None:
+            cls._instance = super(Database, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
     def __init__(self) -> None:
-        self._logger = AppLogger("Database")
+        if not hasattr(self, "_initialized"):
+            self._initialized = True
+            self._logger = AppLogger("Database")
+            self._env_loader = EnvironmentLoader()
+            self._db_url: str
+            self._load_variables()
 
-        self._env_loader = EnvironmentLoader()
-        self._db_url: str
-        self._load_variables()
-
-        self.engine = create_engine(self._db_url, echo=False)
-        self._session_factory = sessionmaker(
-            autocommit=False, autoflush=False, bind=self.engine
-        )
+            self.engine = create_engine(
+                self._db_url,
+                echo=False,
+                pool_size=5,
+                max_overflow=10,
+                pool_recycle=3600,
+            )
+            self._session_factory = sessionmaker(
+                autocommit=False, autoflush=False, bind=self.engine
+            )
 
     @contextmanager
     def session_scope(self) -> Generator[Session, None, None]:
