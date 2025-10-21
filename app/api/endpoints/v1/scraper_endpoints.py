@@ -6,6 +6,7 @@ from flask import Blueprint, Response, jsonify
 from app.controller.scraping_controller import ScrapingController
 from app.utils.logger import AppLogger
 from app.utils.task_manager import TaskStatus, default_task_manager
+from app.core.auth import admin_required
 
 scraper_bp = Blueprint("scraping", __name__, url_prefix="/api/v1/scraping")
 
@@ -26,6 +27,7 @@ def _scraping_worker(task_id: str) -> None:
 
 
 @scraper_bp.route("", methods=["GET"])
+@admin_required
 def scraping() -> tuple[Response, int]:
     """
     Realizar o web scraping dos livros

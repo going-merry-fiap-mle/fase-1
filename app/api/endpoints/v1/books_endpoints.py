@@ -5,11 +5,13 @@ from flask.wrappers import Response
 
 from app.controller.books.get_book_controller import GetBookController
 from app.schemas.pagination_schema import PaginationParams
+from app.core.auth import admin_required
 
 books_bp = Blueprint("books", __name__, url_prefix="/api/v1/books")
 
 
 @books_bp.route("", methods=["GET"])
+@admin_required
 def list_books() -> Response | tuple[Response, int]:
     """
     Listar todos os livros com paginação
@@ -79,6 +81,7 @@ def list_books() -> Response | tuple[Response, int]:
 
 
 @books_bp.route("/<string:book_id>", methods=["GET"])
+@admin_required
 def get_book(book_id: str) -> Response | tuple[Response, int]:
     """
     Buscar livro por ID

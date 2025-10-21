@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from app.api.register_endpoints import register_endpoints
 from app.utils.environment_loader import EnvironmentLoader
 from app.utils.logger import AppLogger, LogManager
+from app.api.auth import router as auth_router
 
 
 
@@ -29,6 +30,7 @@ class FlaskApp:
 
 
         register_endpoints(self.app)
+        self.app.register_blueprint(auth_router)
 
     def _load_variables(self) -> None:
         self.host = str(self.env_loader.get("HOST", "0.0.0.0") or "0.0.0.0")
@@ -46,6 +48,17 @@ class FlaskApp:
             },
             "basePath": "/",
             "schemes": ["http", "https"],
+            "securityDefinitions": {
+                "Bearer": {
+                    "type": "apiKey",
+                    "name": "Authorization",
+                    "in": "header",
+                    "description": "JWT Authorization header using the Bearer scheme. Example: 'Authorization: Bearer {token}'"
+                }
+            },
+            "security": [
+                {"Bearer": []}
+            ]
         }
         Swagger(self.app, template=swagger_template)
 
