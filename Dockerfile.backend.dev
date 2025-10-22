@@ -49,8 +49,6 @@ COPY app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini ./
 
-RUN alembic upgrade head
-
 COPY start-backend-dev.sh ./
 
 RUN sed -i 's/\r$//' /app/start-backend-dev.sh && \
