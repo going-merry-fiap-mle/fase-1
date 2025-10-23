@@ -157,7 +157,7 @@ def search_books() -> tuple[Response, int]:
 @books_bp.route("/price-range", methods=["GET"])
 def price_range_books() -> tuple[Response, int]:
     """
-    Listar todos os livros com paginação
+    List paginated books within price range 
     ---
     tags:
       - Livros
@@ -176,15 +176,15 @@ def price_range_books() -> tuple[Response, int]:
         in: query
         type: integer
         default: 1
-        description: "Número da página (mínimo: 1)"
+        description: "Page number (min: 1)"
       - name: per_page
         in: query
         type: integer
         default: 10
-        description: "Itens por página (mínimo: 1, máximo: 100)"
+        description: "Itens per page (min: 1, max: 100)"
     responses:
       200:
-        description: Lista paginada de livros
+        description: Paginated item list
         schema:
           type: object
           properties:
@@ -195,7 +195,7 @@ def price_range_books() -> tuple[Response, int]:
                 properties:
                   id:
                     type: string
-                    description: "ID do livro (UUID)"
+                    description: "Book ID (UUID)"
                   title:
                     type: string
                   price:
@@ -220,7 +220,7 @@ def price_range_books() -> tuple[Response, int]:
                 total_pages:
                   type: integer
       400:
-        description: Parâmetros inválidos
+        description: Invalid parameters
     """
 
     pagination = PaginationParams(
@@ -233,26 +233,22 @@ def price_range_books() -> tuple[Response, int]:
     
     
     if min_str is None or max_str is None:
-        return jsonify({"error": "Parâmetros 'min' e 'max' são obrigatórios."}), 400
+        return jsonify({"description": "Invalid parameters"}), 400
 
     try:
 
-      min_price = float(min_str)
-      max_price = float(max_str)
+      min_price = Decimal(min_str)
+      max_price = Decimal(max_str)
 
     except ValueError:
-            return jsonify({"error": "Parâmetros 'min' e 'max' devem ser números válidos."}), 400
+            return jsonify({"description": "Invalid parameters"}), 400
 
     controller = GetBooksByPriceController()
     result = controller.call_controller(page=pagination.page, per_page=pagination.per_page, min_price=min_price, max_price=max_price)
 
     if min_price is None or max_price is None:
         return jsonify({
-            "error": "Parâmetros 'min' e 'max' são obrigatórios."
+            "description": "Invalid parameters"
         }), 400
     
-    return jsonify({
-        "min": min_price,
-        "max": max_price,
-        "results": result.model_dump(),
-    }), 200
+    return jsonify({"results": result.model_dump()}), 200

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from app.infrastructure.adapters.book_adapter import BookAdapter
 from app.schemas.book_schema import BookBase
 from app.schemas.pagination_schema import PaginatedResponse, PaginationMeta
@@ -7,7 +8,7 @@ from app.usecases.book.get_books_by_price_use_case import GetBooksByPriceUseCase
 
 class GetBooksByPriceController:
 
-    def call_controller(self, page: int = 1, per_page: int = 10, min_price : float = 0.0, max_price: float = float('inf')) -> PaginatedResponse[BookBase]:
+    def call_controller(self, page: int = 1, per_page: int = 10, min_price : Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> PaginatedResponse[BookBase]:
         book_adapter = BookAdapter()
         book_service = BookService(book_adapter)
         use_case = GetBooksByPriceUseCase(book_service)

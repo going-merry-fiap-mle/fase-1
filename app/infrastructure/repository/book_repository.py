@@ -1,5 +1,6 @@
 from decimal import Decimal
 from uuid import UUID
+import math
 
 from app.domain.models.book_domain_model import Book as DomainBook
 from app.infrastructure.models.book import Book
@@ -49,13 +50,18 @@ class BookRepository(IBookRepository):
 
             return book_db.to_domain()
 
-    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: float = 0.0, max_price: float = float('inf')) -> tuple[list[DomainBook], int]:
+    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price : Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> tuple[list[DomainBook], int]:
         with get_session() as session:
-            total = session.query(Book).count()
+            filters = [Book.price >= min_price]
+            if not math.isinf(max_price):
+                filters.append(Book.price <= max_price)
+
+            filtered_query = session.query(Book).filter(*filters)
+            total = filtered_query.count()
 
             offset = (page - 1) * per_page
             books_orm = (
-                session.query(Book)
+                filtered_query
                 .offset(offset)
                 .limit(per_page)
                 .all()
