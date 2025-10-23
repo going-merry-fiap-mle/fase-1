@@ -64,12 +64,14 @@ def run_migrations_online() -> None:
     """
 
     database_url = os.getenv('DATABASE_URL')
-    
     configuration = config.get_section(config.config_ini_section)
-    configuration['sqlalchemy.url'] = database_url
-    
+    if database_url:
+        configuration['sqlalchemy.url'] = database_url
+    else:
+        configuration['sqlalchemy.url'] = configuration.get('sqlalchemy.url', config.get_main_option('sqlalchemy.url'))
+
     connectable = engine_from_config(
-        config.get_section(configuration),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
