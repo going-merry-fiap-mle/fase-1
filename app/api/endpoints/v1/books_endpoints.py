@@ -85,16 +85,16 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
     Buscar livro por ID
     ---
     tags:
-      - Livros
+      - Books
     parameters:
       - name: book_id
         in: path
         type: string
         required: true
-        description: "ID do livro (UUID)"
+        description: "Book ID (UUID)"
     responses:
       200:
-        description: Detalhes do livro
+        description: Book details
         schema:
           type: object
           properties:
@@ -113,20 +113,26 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
             image_url:
               type: string
       404:
-        description: Livro não encontrado
+        description: Book not found
       400:
-        description: UUID inválido
+        description: Invalid UUID format
     """
 
-    UUID(book_id)
+    try:
+      UUID(book_id)
 
+    except ValueError:
+      return jsonify({"description": "Invalid UUID format"}), 400
+    
     controller = GetBookByIdController()
     result = controller.call_controller(book_id)
     
-    if result is None:
-      return jsonify({"description": "UUID inválido"}), 400
-    else:
+    
+    if result:
       return jsonify({"id": book_id, "book": result.model_dump()}), 200
+    
+    else:
+      return jsonify({"description": "Book not found"}), 404
       
 
 

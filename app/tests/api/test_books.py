@@ -42,19 +42,25 @@ def test_books_id_endpoint(client):
         response = client.get(f"/api/v1/books/{valid_uuid}")
         assert (
             response.status_code == 200
-            or response.status_code == 404
-            or response.status_code == 501
         )
 
+def test_books_id_endpoint_book_not_found(client):
+
+    valid_uuid = "b7e7fd8c-ad40-4634-a00c-3bc6aa11b09e"
+
+    with patch(
+        "app.infrastructure.repository.book_repository.BookRepository.get_book_by_id",
+        return_value=None,
+    ):
+
+        response = client.get(f"/api/v1/books/{valid_uuid}")
+        assert (
+            response.status_code == 404
+        )
 
 def test_books_id_endpoint_invalid_uuid(client):
     response = client.get("/api/v1/books/invalid-uuid")
     assert response.status_code == 400
-
-    data = response.get_json()
-    assert 'error' in data
-    assert data['error'] == 'Invalid value'
-    assert 'message' in data
 
 
 def test_books_id_endpoint_integer_not_accepted(client):
