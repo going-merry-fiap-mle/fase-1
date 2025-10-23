@@ -1,9 +1,7 @@
 from decimal import Decimal
+from types import SimpleNamespace
 from unittest.mock import patch
 from uuid import UUID
-
-from app.domain.models.category_domain_model import Category
-from app.schemas.book_schema import BookBase
 
 
 def test_books_endpoint(client):
@@ -24,9 +22,9 @@ def test_books_id_endpoint(client):
     
     valid_uuid = "b7e7fd8c-ad40-4634-a00c-3bc6aa11b09e"
     
-    category = Category("History")
+    category = SimpleNamespace(name="Fiction")
     
-    book = BookBase(
+    book = SimpleNamespace(
         id=UUID(valid_uuid),
         title="Title",
         price=Decimal("9.99"),
