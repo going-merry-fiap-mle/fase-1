@@ -123,7 +123,7 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
     controller = GetBookByIdController()
     result = controller.call_controller(book_id)
 
-    return jsonify({"id": book_id, "book": result}), 200
+    return jsonify({"id": book_id, "book": result.model_dump()}), 200
 
 
 @books_bp.route("/search", methods=["GET"])
