@@ -3,6 +3,7 @@ from flask.wrappers import Response
 
 from app.controller.categories.get_category_stats_controller import GetCategoryStatsController
 from app.schemas.pagination_schema import PaginationParams
+from app.controller.stats.get_overview_stats_controller import GetOverviewStatsController
 
 stats_bp = Blueprint('stats', __name__, url_prefix='/api/v1/stats')
 
@@ -73,5 +74,35 @@ def categories_stats() -> Response | tuple[Response, int]:
 
     controller = GetCategoryStatsController()
     result = controller.call_controller(page=pagination.page, per_page=pagination.per_page)
+
+    return jsonify(result.model_dump())
+
+
+@stats_bp.route('/overview', methods=['GET'])
+def overview_stats() -> Response | tuple[Response, int]:
+    """
+    Estatísticas gerais (total de livros, preço médio, distribuição de ratings)
+    ---
+    tags:
+      - Estatísticas
+    responses:
+      200:
+        description: Overview statistics
+        schema:
+          type: object
+          properties:
+            total_books:
+              type: integer
+            avg_price:
+              type: number
+              format: float
+              nullable: true
+            rating_distribution:
+              type: object
+              additionalProperties:
+                type: integer
+    """
+    controller = GetOverviewStatsController()
+    result = controller.call_controller()
 
     return jsonify(result.model_dump())

@@ -30,3 +30,6 @@ class BookAdapter(IBookRepository):
             category_id=category_id,
             image_url=image_url
         )
+
+    def get_overview_stats(self) -> dict:
+        return self._repository.get_overview_stats()

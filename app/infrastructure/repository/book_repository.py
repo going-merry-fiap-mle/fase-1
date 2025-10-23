@@ -5,6 +5,7 @@ from app.domain.models.book_domain_model import Book as DomainBook
 from app.infrastructure.models.book import Book
 from app.infrastructure.session_manager import get_session
 from app.port.book_port import IBookRepository
+from sqlalchemy import func
 
 
 class BookRepository(IBookRepository):
@@ -48,3 +49,23 @@ class BookRepository(IBookRepository):
             session.flush()
 
             return book_db.to_domain()
+
+    def get_overview_stats(self) -> dict:
+        with get_session() as session:
+            total = session.query(func.count(Book.id)).scalar() or 0
+
+            avg_price_dec = session.query(func.avg(Book.price)).scalar()
+            avg_price = round(float(avg_price_dec), 2) if avg_price_dec is not None else None
+
+            rows = session.query(Book.rating, func.count(Book.id)).group_by(Book.rating).all()
+
+            rating_distribution: dict[str, int] = {}
+            for rating, count in rows:
+                key = str(rating) if rating is not None else "unknown"
+                rating_distribution[key] = int(count)
+
+            return {
+                "total_books": int(total),
+                "avg_price": avg_price,
+                "rating_distribution": rating_distribution,
+            }
