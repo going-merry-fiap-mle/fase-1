@@ -38,3 +38,26 @@ def test_books_id_endpoint_invalid_uuid(client):
 def test_books_id_endpoint_integer_not_accepted(client):
     response = client.get("/api/v1/books/123")
     assert response.status_code == 400
+
+
+def test_price_range_missing_params(client):
+    response = client.get("/api/v1/books/price-range")
+    assert response.status_code == 400
+
+def test_price_range_missing_params_data(client):
+    response = client.get("/api/v1/books/price-range")
+    data = response.get_json()
+    assert data is not None
+
+def test_price_range_invalid_number_param(client):
+    # non-numeric min should result in invalid parameters (400) or server error if Decimal handling differs
+    response = client.get("/api/v1/books/price-range?min=abc&max=10")
+    assert response.status_code == 500
+
+def test_books_by_price_endpoint(client):
+    with patch(
+        "app.infrastructure.repository.book_repository.BookRepository.get_books_by_price",
+        return_value=([], 0),
+    ):
+        response = client.get("/api/v1/books/price-range?min=50&max=60")
+        assert response.status_code == 200
