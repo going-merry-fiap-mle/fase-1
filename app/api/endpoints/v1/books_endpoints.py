@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from app.controller.books.get_book_by_id_controller import GetBookByIdController
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
 
@@ -116,8 +117,13 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
       400:
         description: UUID inválido
     """
+
     UUID(book_id)
-    return jsonify({"id": book_id, "book": None}), 200
+
+    controller = GetBookByIdController()
+    result = controller.call_controller(book_id)
+
+    return jsonify({"id": book_id, "book": result}), 200
 
 
 @books_bp.route("/search", methods=["GET"])

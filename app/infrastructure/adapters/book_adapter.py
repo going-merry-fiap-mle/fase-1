@@ -30,3 +30,6 @@ class BookAdapter(IBookRepository):
             category_id=category_id,
             image_url=image_url
         )
+
+    def get_book_by_id(self, book_id : UUID) -> Book | None:
+        return self._repository.get_book_by_id(book_id)
