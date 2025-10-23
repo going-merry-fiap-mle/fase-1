@@ -1,3 +1,4 @@
+from uuid import UUID
 from app.infrastructure.adapters.book_adapter import BookAdapter
 from app.schemas.book_schema import BookBase
 from app.services.book_service import BookService
@@ -6,7 +7,7 @@ from app.usecases.book.get_book_by_id_use_case import GetBookByIdUseCase
 
 class GetBookByIdController:
 
-    def call_controller(self, book_id) -> BookBase | None:
+    def call_controller(self, book_id : str) -> BookBase | None:
         book_adapter = BookAdapter()
         book_service = BookService(book_adapter)
         use_case = GetBookByIdUseCase(book_service)

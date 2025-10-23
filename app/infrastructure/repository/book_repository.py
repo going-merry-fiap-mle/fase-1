@@ -50,15 +50,13 @@ class BookRepository(IBookRepository):
             return book_db.to_domain()
 
 
-    def get_book_by_id(self, book_id : UUID) -> DomainBook | None:
+    def get_book_by_id(self, book_id : str) -> DomainBook | None:
         with get_session() as session:
-            total = session.query(Book).count()
+            book_orm = session.get(Book, book_id)
 
-        book_orm = session.get(Book, book_id)
+            if book_orm is None:
+                return None
 
-        if book_orm is None:
-            return None
+            domain_book = book_orm.to_domain()
 
-        domain_book = book_orm.to_domain()
-
-        return domain_book
+            return domain_book

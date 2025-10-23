@@ -30,5 +30,5 @@ class BookService:
             image_url=image_url
         )
 
-    def get_book_by_id(self, book_id : UUID) -> Book | None:
+    def get_book_by_id(self, book_id : str) -> Book | None:
         return self._book_repository.get_book_by_id(book_id)

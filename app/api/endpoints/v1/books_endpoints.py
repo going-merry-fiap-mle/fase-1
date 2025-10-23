@@ -80,7 +80,7 @@ def list_books() -> Response | tuple[Response, int]:
 
 
 @books_bp.route("/<string:book_id>", methods=["GET"])
-def get_book(book_id: str) -> Response | tuple[Response, int]:
+def get_book(book_id : str) -> Response | tuple[Response, int]:
     """
     Buscar livro por ID
     ---
