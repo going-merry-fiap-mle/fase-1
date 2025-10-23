@@ -231,7 +231,6 @@ def price_range_books() -> tuple[Response, int]:
     min_str = request.args.get('min')
     max_str = request.args.get('max')
     
-    
     if min_str is None or max_str is None:
         return jsonify({"description": "Invalid parameters"}), 400
 
