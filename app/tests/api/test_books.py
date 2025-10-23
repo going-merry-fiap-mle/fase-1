@@ -1,4 +1,9 @@
+from decimal import Decimal
 from unittest.mock import patch
+from uuid import UUID
+
+from app.domain.models.category_domain_model import Category
+from app.schemas.book_schema import BookBase
 
 
 def test_books_endpoint(client):
@@ -16,13 +21,32 @@ def test_books_search_endpoint(client):
 
 
 def test_books_id_endpoint(client):
+    
     valid_uuid = "b7e7fd8c-ad40-4634-a00c-3bc6aa11b09e"
-    response = client.get(f"/api/v1/books/{valid_uuid}")
-    assert (
-        response.status_code == 200
-        or response.status_code == 404
-        or response.status_code == 501
+    
+    category = Category("History")
+    
+    book = BookBase(
+        id=UUID(valid_uuid),
+        title="Title",
+        price=Decimal("9.99"),
+        rating=4,
+        availability="In stock",
+        category=category,
+        image_url="http://example.com/img.jpg",
     )
+
+    with patch(
+        "app.infrastructure.repository.book_repository.BookRepository.get_book_by_id",
+        return_value=book,
+    ):
+
+        response = client.get(f"/api/v1/books/{valid_uuid}")
+        assert (
+            response.status_code == 200
+            or response.status_code == 404
+            or response.status_code == 501
+        )
 
 
 def test_books_id_endpoint_invalid_uuid(client):
