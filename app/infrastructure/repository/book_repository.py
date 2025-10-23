@@ -50,7 +50,7 @@ class BookRepository(IBookRepository):
 
             return book_db.to_domain()
 
-    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price : Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> tuple[list[DomainBook], int]:
+    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> tuple[list[DomainBook], int]:
         with get_session() as session:
             filters = [Book.price >= min_price]
             if not math.isinf(max_price):
