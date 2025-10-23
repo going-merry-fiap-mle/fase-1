@@ -8,7 +8,7 @@ from app.usecases.book.get_books_by_price_use_case import GetBooksByPriceUseCase
 
 class GetBooksByPriceController:
 
-    def call_controller(self, page: int = 1, per_page: int = 10, min_price : Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> PaginatedResponse[BookBase]:
+    def call_controller(self, page: int = 1, per_page: int = 10, min_price: Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> PaginatedResponse[BookBase]:
         book_adapter = BookAdapter()
         book_service = BookService(book_adapter)
         use_case = GetBooksByPriceUseCase(book_service)
