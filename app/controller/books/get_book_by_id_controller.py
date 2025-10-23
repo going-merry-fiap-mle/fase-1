@@ -1,4 +1,3 @@
-from app.domain.models.book_domain_model import Book
 from app.infrastructure.adapters.book_adapter import BookAdapter
 from app.schemas.book_schema import BookBase
 from app.services.book_service import BookService
