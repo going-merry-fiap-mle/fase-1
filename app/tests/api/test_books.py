@@ -16,7 +16,7 @@ def test_books_search_endpoint(client):
 
 
 def test_books_id_endpoint(client):
-    valid_uuid = "550e8400-e29b-41d4-a716-446655440000"
+    valid_uuid = "b7e7fd8c-ad40-4634-a00c-3bc6aa11b09e"
     response = client.get(f"/api/v1/books/{valid_uuid}")
     assert (
         response.status_code == 200
