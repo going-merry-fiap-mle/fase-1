@@ -246,9 +246,5 @@ def price_range_books() -> tuple[Response, int]:
     controller = GetBooksByPriceController()
     result = controller.call_controller(page=pagination.page, per_page=pagination.per_page, min_price=min_price, max_price=max_price)
 
-    if min_price is None or max_price is None:
-        return jsonify({
-            "description": "Invalid parameters"
-        }), 400
     
     return jsonify({"results": result.model_dump()}), 200
