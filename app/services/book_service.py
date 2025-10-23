@@ -29,3 +29,6 @@ class BookService:
             category_id=category_id,
             image_url=image_url
         )
+
+    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: float = 0.0, max_price: float = float('inf')) -> tuple[list[Book], int]:
+        return self._book_repository.get_books_by_price(page, per_page, min_price, max_price)

@@ -17,3 +17,6 @@ class IBookRepository(Protocol):
         category_id: UUID,
         image_url: str
     ) -> Book: ...
+
+    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: float = 0.0, max_price: float = float('inf')) -> tuple[list[Book], int]: ...
+    

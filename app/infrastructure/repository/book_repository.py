@@ -48,3 +48,19 @@ class BookRepository(IBookRepository):
             session.flush()
 
             return book_db.to_domain()
+
+    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: float = 0.0, max_price: float = float('inf')) -> tuple[list[DomainBook], int]:
+        with get_session() as session:
+            total = session.query(Book).count()
+
+            offset = (page - 1) * per_page
+            books_orm = (
+                session.query(Book)
+                .offset(offset)
+                .limit(per_page)
+                .all()
+            )
+
+            domain_books = [book.to_domain() for book in books_orm]
+
+            return domain_books, total
