@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
 
-from app.controller.categories.get_category_stats_controller import GetCategoryStatsController
-from app.schemas.pagination_schema import PaginationParams
+from app.controller.stats.get_category_stats_controller import GetCategoryStatsController
 from app.controller.stats.get_overview_stats_controller import GetOverviewStatsController
+from app.schemas.pagination_schema import PaginationParams
 
 stats_bp = Blueprint('stats', __name__, url_prefix='/api/v1/stats')
 
