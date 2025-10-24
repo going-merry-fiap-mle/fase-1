@@ -8,6 +8,14 @@ class IBookRepository(Protocol):
 
     def get_books(self, page: int = 1, per_page: int = 10) -> tuple[list[Book], int]: ...
 
+    def search_books(
+        self,
+        title: str | None = None,
+        category: str | None = None,
+        page: int = 1,
+        per_page: int = 10
+    ) -> tuple[list[Book], int]: ...
+
     def create_book(
         self,
         title: str,

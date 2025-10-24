@@ -55,14 +55,22 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 
 ### Buscar livros por título e/ou categoria
 - **Endpoint:** `GET /api/v1/books/search?title={title}&category={category}`
-- **Descrição:** Busca livros pelo título e/ou categoria informados.
+- **Descrição:** Busca livros pelo título e/ou categoria informados (busca parcial, case-insensitive).
+- **Importante:** Pelo menos um parâmetro de busca (title ou category) deve ser fornecido.
+- **Comportamento:**
+  - Se apenas `title` for fornecido: busca livros cujo título contenha o valor informado
+  - Se apenas `category` for fornecido: busca livros cuja categoria contenha o valor informado
+  - Se ambos forem fornecidos: busca livros que satisfaçam **ambas** as condições (AND)
 - **Parâmetros:**
-  - `title` (query, string, opcional)
-  - `category` (query, string, opcional)
-- **Resposta de exemplo:**
+  - `title` (query, string, opcional*): Título do livro para buscar
+  - `category` (query, string, opcional*): Categoria do livro para buscar
+  - `page` (query, integer, opcional, padrão: 1): Número da página
+  - `per_page` (query, integer, opcional, padrão: 10): Itens por página
+  - *Pelo menos um parâmetro de busca é obrigatório
+- **Resposta de sucesso (200):**
 ```json
 {
-  "results": [
+  "items": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "title": "A Light in the Attic",
@@ -72,7 +80,21 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
       "category": "Poetry",
       "image_url": "https://books.toscrape.com/media/cache/2c/da/2cdad67c44b002e7ead0cc35693c0e8b.jpg"
     }
-  ]
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 10,
+    "total_items": 15,
+    "total_pages": 2
+  }
+}
+```
+- **Nota:** A resposta usa `items` (não `results`) para manter consistência com os outros endpoints paginados da API.
+- **Resposta de erro (400) - Nenhum parâmetro fornecido:**
+```json
+{
+  "error": "Invalid parameters",
+  "message": "At least one search parameter (title or category) must be provided"
 }
 ```
 
@@ -84,9 +106,9 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 - **Endpoint:** `GET /api/v1/categories`
 - **Descrição:** Retorna uma lista paginada de categorias disponíveis.
 - **Parâmetros:**
-  - `page` (query, integer, opcional, padrão: 1): Número da página
-  - `per_page` (query, integer, opcional, padrão: 10): Itens por página
-- **Resposta de exemplo:**
+  - `page` (query, integer, opcional, padrão: 1): Número da página (mínimo: 1)
+  - `per_page` (query, integer, opcional, padrão: 10): Itens por página (mínimo: 1, máximo: 100)
+- **Resposta de sucesso (200):**
 ```json
 {
   "items": [
@@ -109,6 +131,19 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
     "total_items": 50,
     "total_pages": 5
   }
+}
+```
+- **Resposta de erro (400) - Paginação inválida:**
+```json
+{
+  "error": "Invalid parameters",
+  "details": [
+    {
+      "type": "value_error",
+      "loc": ["page"],
+      "msg": "Value must be greater than or equal to 1"
+    }
+  ]
 }
 ```
 
@@ -304,5 +339,7 @@ Retornado quando ocorre um erro inesperado no servidor.
 - Todos os endpoints retornam respostas no formato JSON, exceto `/apidocs/`, que retorna uma interface web.
 - IDs são UUIDs (ex: `550e8400-e29b-41d4-a716-446655440000`).
 - Parâmetros de busca devem ser passados via query string.
+- **Paginação:** Todos os endpoints paginados validam `page >= 1` e `per_page` entre 1 e 100.
+- **Consistência:** Todos os endpoints paginados usam a chave `items` (não `results`) para a lista de resultados.
 - Endpoints de autenticação e ML são opcionais/bônus.
 - Para mais detalhes sobre a arquitetura e funcionamento, consulte o arquivo `docs/architecture.md`.

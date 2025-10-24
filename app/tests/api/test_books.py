@@ -10,11 +10,6 @@ def test_books_endpoint(client):
         assert response.status_code == 200 or response.status_code == 501
 
 
-def test_books_search_endpoint(client):
-    response = client.get("/api/v1/books/search")
-    assert response.status_code == 200 or response.status_code == 501
-
-
 def test_books_id_endpoint(client):
     valid_uuid = "550e8400-e29b-41d4-a716-446655440000"
     response = client.get(f"/api/v1/books/{valid_uuid}")

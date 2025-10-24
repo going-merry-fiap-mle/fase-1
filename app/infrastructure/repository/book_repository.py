@@ -3,6 +3,7 @@ from uuid import UUID
 
 from app.domain.models.book_domain_model import Book as DomainBook
 from app.infrastructure.models.book import Book
+from app.infrastructure.models.category import Category
 from app.infrastructure.session_manager import get_session
 from app.port.book_port import IBookRepository
 from sqlalchemy import func
@@ -21,6 +22,30 @@ class BookRepository(IBookRepository):
                 .limit(per_page)
                 .all()
             )
+
+            domain_books = [book.to_domain() for book in books_orm]
+
+            return domain_books, total
+
+    def search_books(
+        self,
+        title: str | None = None,
+        category: str | None = None,
+        page: int = 1,
+        per_page: int = 10
+    ) -> tuple[list[DomainBook], int]:
+        with get_session() as session:
+            query = session.query(Book).join(Category)
+
+            if title:
+                query = query.filter(Book.title.ilike(f"%{title}%"))
+            if category:
+                query = query.filter(Category.name.ilike(f"%{category}%"))
+
+            total = query.count()
+
+            offset = (page - 1) * per_page
+            books_orm = query.offset(offset).limit(per_page).all()
 
             domain_books = [book.to_domain() for book in books_orm]
 
