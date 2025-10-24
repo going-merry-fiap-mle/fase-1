@@ -50,6 +50,23 @@ class BookRepository(IBookRepository):
 
             return domain_books, total
 
+    def get_top_rated_books(
+        self,
+        page: int = 1,
+        per_page: int = 10
+    ) -> tuple[list[DomainBook], int]:
+        with get_session() as session:
+            query = session.query(Book).order_by(Book.rating.desc(), Book.title)
+
+            total = query.count()
+
+            offset = (page - 1) * per_page
+            books_orm = query.offset(offset).limit(per_page).all()
+
+            domain_books = [book.to_domain() for book in books_orm]
+
+            return domain_books, total
+
     def create_book(
         self,
         title: str,

@@ -16,6 +16,12 @@ class IBookRepository(Protocol):
         per_page: int = 10
     ) -> tuple[list[Book], int]: ...
 
+    def get_top_rated_books(
+        self,
+        page: int = 1,
+        per_page: int = 10
+    ) -> tuple[list[Book], int]: ...
+
     def create_book(
         self,
         title: str,

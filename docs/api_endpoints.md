@@ -98,6 +98,61 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 }
 ```
 
+### Buscar livros com maiores avaliações
+- **Endpoint:** `GET /api/v1/books/top-rated`
+- **Descrição:** Retorna livros ordenados por rating (maior para menor).
+- **Comportamento:**
+  - Livros são ordenados por rating em ordem decrescente (5, 4, 3, 2, 1)
+  - Em caso de empate no rating, são ordenados por título alfabeticamente
+  - Suporta paginação
+- **Parâmetros:**
+  - `page` (query, integer, opcional, padrão: 1): Número da página
+  - `per_page` (query, integer, opcional, padrão: 10): Itens por página
+- **Resposta de sucesso (200):**
+```json
+{
+  "items": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "title": "Advanced Python",
+      "price": "49.99",
+      "rating": 5,
+      "availability": "In stock",
+      "category": "Programming",
+      "image_url": "https://books.toscrape.com/media/cache/xx/yy/xxyy.jpg"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "title": "Data Science Guide",
+      "price": "39.99",
+      "rating": 5,
+      "availability": "In stock",
+      "category": "Data Science",
+      "image_url": "https://books.toscrape.com/media/cache/aa/bb/aabb.jpg"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 10,
+    "total_items": 100,
+    "total_pages": 10
+  }
+}
+```
+- **Resposta de erro (400) - Paginação inválida:**
+```json
+{
+  "error": "Invalid parameters",
+  "details": [
+    {
+      "type": "value_error",
+      "loc": ["page"],
+      "msg": "Value must be greater than or equal to 1"
+    }
+  ]
+}
+```
+
 ---
 
 ## 2. Categorias
