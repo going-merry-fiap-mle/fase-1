@@ -132,6 +132,39 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 
 ## 4. Estatísticas (Opcionais)
 
+### Overview (Estatísticas gerais)
+- **Endpoint:** `GET /api/v1/stats/overview`
+- **Descrição:** Retorna estatísticas gerais sobre o acervo: total de livros, preço médio e distribuição de ratings (contagem por nota).
+- **Resposta de exemplo:**
+```json
+{
+  "total_books": 10,
+  "avg_price": 12.34,
+  "rating_distribution": {"1": 1, "2": 2, "3": 0, "4": 3, "5": 4, "unknown": 0}
+}
+```
+
+### Categories (Estatísticas por categoria)
+- **Endpoint:** `GET /api/v1/stats/categories`
+- **Descrição:** Retorna estatísticas paginadas por categoria: quantidade de livros, preço mínimo, máximo e preço médio por categoria.
+- **Parâmetros:**
+  - `page` (query, integer, opcional, padrão: 1)
+  - `per_page` (query, integer, opcional, padrão: 10)
+- **Resposta de exemplo:**
+```json
+{
+  "items": [
+    {"name": "Ficcao", "book_count": 2, "min_price": 10.0, "max_price": 20.0, "avg_price": 15.0},
+    {"name": "Ciencia", "book_count": 1, "min_price": 5.0, "max_price": 5.0, "avg_price": 5.0}
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 10,
+    "total_items": 2,
+    "total_pages": 1
+  }
+}
+```
 
 ---
 
