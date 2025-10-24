@@ -13,3 +13,6 @@ class CategoryAdapter(ICategoryRepository):
 
     def get_or_create_category(self, name: str) -> Category:
         return self._repository.get_or_create_category(name)
+
+    def get_category_stats(self, page: int = 1, per_page: int = 10) -> tuple[list[dict], int]:
+        return self._repository.get_category_stats(page, per_page)
