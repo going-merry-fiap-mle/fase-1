@@ -26,6 +26,16 @@ class BookService:
             per_page=per_page
         )
 
+    def get_top_rated_books(
+        self,
+        page: int = 1,
+        per_page: int = 10
+    ) -> tuple[list[Book], int]:
+        return self._book_repository.get_top_rated_books(
+            page=page,
+            per_page=per_page
+        )
+
     def create_book(
         self,
         title: str,
