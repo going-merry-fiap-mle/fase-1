@@ -156,9 +156,7 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma �
 ## Pontos de Evolução
 - Domínio: promover os placeholders (models/repositories/services) a contratos explícitos (interfaces/protocolos) e mover regras de negócio específicas para o núcleo do domínio.
 - Persistência: implementar repositórios concretos em infrastructure/database.py (ou adapters/) e fazer a aplicação usar apenas portas do domínio.
-- Endpoints de Books/Categories: integrar com casos de uso e repositórios reais (hoje retornam dados vazios como placeholder).
-- Testes: consolidar estrutura e ampliar cobertura em torno de contratos do domínio e adapters.
-- Endpoints de busca: implementar get_book(id) e search_books() que atualmente retornam placeholders
+- Endpoint de busca: implementar get_book(id) completo (atualmente retorna placeholder)
 
 ## Dependências Principais
 
