@@ -118,13 +118,25 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 
 ### Verificar status da API
 - **Endpoint:** `GET /api/v1/health`
-- **Descrição:** Verifica se a API está operacional e se há conectividade com os dados.
-- **Resposta de exemplo:**
+- **Descrição:** Verifica se a API está operacional e testa a conectividade real com o banco de dados através de um `SELECT 1`.
+- **Validação:**
+  - Executa `SELECT 1` no banco de dados para verificar conectividade
+  - Retorna `status: "ok"` se tudo estiver funcionando
+  - Retorna `status: "error"` se houver problemas de conexão com o banco
+- **Resposta de sucesso:**
 ```json
 {
   "status": "ok",
   "message": "API operacional",
   "data_connectivity": true
+}
+```
+- **Resposta de erro (conexão com banco falhou):**
+```json
+{
+  "status": "error",
+  "message": "Erro ao conectar com o banco: Connection refused",
+  "data_connectivity": false
 }
 ```
 
