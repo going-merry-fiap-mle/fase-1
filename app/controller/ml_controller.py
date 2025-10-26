@@ -22,10 +22,10 @@ class MLController:
         ml_service = MLService(book_adapter)
         return ml_service.get_feature_manifest()
 
-    def call_training_data(self, page: int = 1, per_page: int = 10, label: str = "rating", sample: float | None = None, seed: int | None = None) -> tuple[list[dict], int]:
+    def call_training_data(self, label: str = "rating", sample: float | None = None, seed: int | None = None) -> tuple[list[dict], int]:
         book_adapter = BookAdapter()
         ml_service = MLService(book_adapter)
-        rows, total = ml_service.get_training_data(page=page, per_page=per_page, label=label, sample=sample, seed=seed)
+        rows, total = ml_service.get_training_data(label=label, sample=sample, seed=seed)
         return rows, total
 
     def call_predict(self, instances: list[dict], model_version: str | None = None) -> list[dict]:

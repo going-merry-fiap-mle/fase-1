@@ -66,14 +66,6 @@ def get_training_data() -> WrResponse | tuple[WrResponse, int]:
     tags:
       - ML
     parameters:
-      - name: page
-        in: query
-        type: integer
-        default: 1
-      - name: per_page
-        in: query
-        type: integer
-        default: 100
       - name: label
         in: query
         type: string
@@ -93,8 +85,6 @@ def get_training_data() -> WrResponse | tuple[WrResponse, int]:
       200:
         description: Dataset para treinamento
     """
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 100, type=int)
     label = request.args.get('label', 'rating')
     sample_raw = request.args.get('sample', None)
     seed_raw = request.args.get('seed', None)
@@ -117,7 +107,7 @@ def get_training_data() -> WrResponse | tuple[WrResponse, int]:
     controller = MLController()
 
     try:
-        rows, total = controller.call_training_data(page=page, per_page=per_page, label=label, sample=sample, seed=seed)
+        rows, total = controller.call_training_data(label=label, sample=sample, seed=seed)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 

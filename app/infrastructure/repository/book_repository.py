@@ -13,7 +13,7 @@ from sqlalchemy import func
 
 class BookRepository(IBookRepository):
 
-    def get_books(self, page: int = 1, per_page: int = 10, category: Optional[str] = None) -> tuple[list[DomainBook], int]:
+    def get_books(self, page: Optional[int] = 1, per_page: Optional[int] = 10, category: Optional[str] = None) -> tuple[list[DomainBook], int]:
         with get_session() as session:
             query = session.query(Book)
 
@@ -23,13 +23,16 @@ class BookRepository(IBookRepository):
 
             total = query.count()
 
-            offset = (page - 1) * per_page
-            books_orm = (
-                query
-                .offset(offset)
-                .limit(per_page)
-                .all()
-            )
+            if per_page is None:
+                books_orm = query.all()
+            else:
+                offset = ((page or 1) - 1) * per_page
+                books_orm = (
+                    query
+                    .offset(offset)
+                    .limit(per_page)
+                    .all()
+                )
 
             domain_books = [book.to_domain() for book in books_orm]
 

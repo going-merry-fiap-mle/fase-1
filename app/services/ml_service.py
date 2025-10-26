@@ -89,8 +89,8 @@ class MLService:
         }
         return manifest
 
-    def get_training_data(self, page: int = 1, per_page: int = 10, label: str = "rating", sample: float | None = None, seed: int | None = None) -> tuple[list[dict], int]:
-        books, total = self._book_repository.get_books(page, per_page)
+    def get_training_data(self, label: str = "rating", sample: float | None = None, seed: int | None = None) -> tuple[list[dict], int]:
+        books, total = self._book_repository.get_books(page=None, per_page=None)
         rows: list[dict] = []
 
         if books:
