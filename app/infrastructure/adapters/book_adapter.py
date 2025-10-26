@@ -1,4 +1,5 @@
 from uuid import UUID
+from typing import Optional
 
 from app.domain.models.book_domain_model import Book
 from app.infrastructure.repository.book_repository import BookRepository
@@ -10,8 +11,8 @@ class BookAdapter(IBookRepository):
     def __init__(self) -> None:
         self._repository = BookRepository()
 
-    def get_books(self, page: int = 1, per_page: int = 10) -> tuple[list[Book], int]:
-        return self._repository.get_books(page, per_page)
+    def get_books(self, page: int = 1, per_page: int = 10, category: Optional[str] = None) -> tuple[list[Book], int]:
+        return self._repository.get_books(page=page, per_page=per_page, category=category)
 
     def search_books(
         self,

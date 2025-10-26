@@ -100,16 +100,13 @@ def get_training_data() -> WrResponse | tuple[WrResponse, int]:
     seed_raw = request.args.get('seed', None)
     fmt = (request.args.get('format', 'json') or 'json').lower()
 
-    # parse sample param: may be float or int
     sample = None
     if sample_raw is not None:
         try:
-            # try float first
             sample_val = float(sample_raw)
             sample = sample_val
         except Exception:
             sample = None
-    # parse seed param: may be int
     seed = None
     if seed_raw is not None:
         try:
@@ -124,28 +121,19 @@ def get_training_data() -> WrResponse | tuple[WrResponse, int]:
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-    # JSON format
     if fmt == 'json':
         return jsonify({"rows": rows, "rows_count": len(rows), "total": total, "format": "json"})
-
-    # CSV format
     elif fmt == 'csv':
-        # prefer canonical order from manifest to ensure stability
         manifest = controller.call_manifest()
         manifest_cols = [f['name'] for f in manifest['features']]
-        # final header order: manifest features (in order) plus the label if not already present
         headers = manifest_cols.copy()
         if label not in headers:
             headers.append(label)
-        # rows may include only a subset; ensure all headers exist when writing
-
-        # if rows exist, we keep the manifest order for CSV columns; missing values will be empty
 
         output = io.StringIO()
         writer = csv.DictWriter(output, fieldnames=headers)
         writer.writeheader()
         for r in rows:
-            # ensure all keys present and respect order
             writer.writerow({k: ('' if r.get(k) is None else r.get(k)) for k in headers})
 
         csv_data = output.getvalue()
@@ -188,7 +176,6 @@ def post_predictions() -> WrResponse | tuple[WrResponse, int]:
     if payload is None:
         return jsonify({"error": "Invalid or missing JSON body"}), 400
 
-    # payload can be {"instances": [...], "model_version": "v1"} or directly a list of instances
     instances = None
     model_version = request.args.get('model_version', None)
 
@@ -196,7 +183,6 @@ def post_predictions() -> WrResponse | tuple[WrResponse, int]:
         instances = payload
     elif isinstance(payload, dict):
         instances = payload.get('instances')
-        # model_version may be provided in body
         model_version = payload.get('model_version') or model_version
     else:
         return jsonify({"error": "Payload must be a list of instances or an object with 'instances' key"}), 400

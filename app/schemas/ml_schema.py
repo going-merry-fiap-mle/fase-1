@@ -18,6 +18,7 @@ class FeaturesResponse(BaseModel):
     total: int
     page: int
     per_page: int
+    total_pages: int
     feature_version: str = "v1"
 
 

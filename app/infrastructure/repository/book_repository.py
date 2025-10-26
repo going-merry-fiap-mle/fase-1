@@ -7,17 +7,25 @@ from app.infrastructure.models.category import Category
 from app.infrastructure.session_manager import get_session
 from app.port.book_port import IBookRepository
 from sqlalchemy import func
+from typing import Optional
+from sqlalchemy import func
 
 
 class BookRepository(IBookRepository):
 
-    def get_books(self, page: int = 1, per_page: int = 10) -> tuple[list[DomainBook], int]:
+    def get_books(self, page: int = 1, per_page: int = 10, category: Optional[str] = None) -> tuple[list[DomainBook], int]:
         with get_session() as session:
-            total = session.query(Book).count()
+            query = session.query(Book)
+
+            if category:
+                cat_name = category.strip().lower()
+                query = query.join(Category).filter(func.lower(Category.name) == cat_name)
+
+            total = query.count()
 
             offset = (page - 1) * per_page
             books_orm = (
-                session.query(Book)
+                query
                 .offset(offset)
                 .limit(per_page)
                 .all()
