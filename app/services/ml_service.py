@@ -3,14 +3,12 @@ import re
 from decimal import Decimal
 
 from app.port.book_port import IBookRepository
-from app.infrastructure.model_store import ModelStore
 
 
 class MLService:
 
     def __init__(self, book_repository: IBookRepository) -> None:
         self._book_repository = book_repository
-        self._model_store = ModelStore()
 
     def _parse_price(self, price_str: Optional[str]) -> Optional[float]:
         if price_str is None:
@@ -117,50 +115,3 @@ class MLService:
 
         return rows, total
 
-    def predict(self, instances: list[dict], model_version: str | None = None) -> list[dict]:
-        normalized = []
-        for inst in instances:
-            price_num = None
-            if inst.get('price_num') is not None:
-                price_num = inst.get('price_num')
-            elif inst.get('price') is not None:
-                price_num = self._parse_price(inst.get('price'))
-
-            rating = inst.get('rating', None)
-
-            if inst.get('availability_flag') is not None:
-                availability_flag = inst.get('availability_flag')
-            else:
-                availability_flag = self._availability_flag(inst.get('availability', None))
-
-            if inst.get('image_present') is not None:
-                image_present = inst.get('image_present')
-            else:
-                image_present = self._image_present(inst.get('image_url', None))
-
-            category = inst.get('category', '')
-            title = inst.get('title', None)
-
-            normalized.append({
-                'price_num': price_num,
-                'rating': rating,
-                'availability_flag': availability_flag,
-                'category': category,
-                'image_present': image_present,
-                'title': title,
-            })
-
-        model = self._model_store.load_model(model_version)
-        results = model.predict(normalized)
-
-        out = []
-        for idx, res in enumerate(results):
-            entry = {
-                'input_index': idx,
-                'prediction': res.get('prediction'),
-                'score': res.get('score'),
-                'model_version': model_version or 'default',
-            }
-            out.append(entry)
-
-        return out

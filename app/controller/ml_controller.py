@@ -27,8 +27,3 @@ class MLController:
         ml_service = MLService(book_adapter)
         rows, total = ml_service.get_training_data(label=label, sample=sample, seed=seed)
         return rows, total
-
-    def call_predict(self, instances: list[dict], model_version: str | None = None) -> list[dict]:
-        book_adapter = BookAdapter()
-        ml_service = MLService(book_adapter)
-        return ml_service.predict(instances=instances, model_version=model_version)
