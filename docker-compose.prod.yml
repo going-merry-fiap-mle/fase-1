@@ -51,6 +51,27 @@ services:
       com.fiap.team: "going-merry"
       com.fiap.version: "1.0.0"
 
+  dd-agent:
+    image: gcr.io/datadoghq/agent:7
+    container_name: dd-agent
+    restart: always
+    environment:
+      DD_API_KEY: ${DD_API_KEY}
+      DD_SITE: us5.datadoghq.com
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_AUTO_MULTI_LINE_DETECTION: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+      DD_CONTAINER_EXCLUDE_LOGS: "name:dd-agent name:portainer"
+    volumes:
+      - /opt/datadog-agent/run:/opt/datadog-agent/run:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - fiap-dev-network
+
 networks:
   fiap-prod-network:
     driver: bridge
