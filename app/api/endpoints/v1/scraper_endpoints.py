@@ -34,6 +34,8 @@ def scraping() -> tuple[Response, int]:
     ---
     tags:
       - Web Scraping
+    security:
+      - Bearer: []
     responses:
         202:
             description: Scraping iniciado com sucesso com task id
@@ -58,6 +60,8 @@ def scraping_status(task_id: str) -> tuple[Response, int]:
     ---
     tags:
       - Web Scraping
+    security:
+      - Bearer: []
     parameters:
       - name: task_id
         in: path

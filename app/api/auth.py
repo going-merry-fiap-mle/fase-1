@@ -12,7 +12,7 @@ def login():
     """Login endpoint
     ---
     tags:
-      - Authentication
+      - Autenticação
     parameters:
       - in: body
         name: body
@@ -28,7 +28,7 @@ def login():
               type: string
     responses:
       200:
-        description: Login successful
+        description: Login realizado com sucesso
         schema:
           type: object
           properties:
@@ -39,7 +39,7 @@ def login():
             token_type:
               type: string
       401:
-        description: Invalid credentials
+        description: Credenciais inválidas
     """
     try:
         data = request.get_json()
@@ -49,7 +49,7 @@ def login():
             user = session.query(User).filter(User.username == login_request.username).first()
             
             if not user or not verify_password(login_request.password, user.password):
-                return jsonify({'error': 'Invalid credentials'}), 401
+                return jsonify({'error': 'Invalid credentials', 'message': 'Username or password is incorrect'}), 401
             
             access_token = create_access_token(data={"sub": user.username})
             refresh_token = create_refresh_token(data={"sub": user.username})
@@ -61,9 +61,9 @@ def login():
             })
             
     except ValidationError as e:
-        return jsonify({'error': 'Invalid request data', 'details': e.errors()}), 400
+        return jsonify({"error": "Invalid request data", "message": str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({"error": "Internal server error", "message": str(e)}), 500
 
 @router.route('/refresh', methods=['POST'])
 def refresh_token():
@@ -83,7 +83,7 @@ def refresh_token():
               type: string
     responses:
       200:
-        description: Token refreshed successfully
+        description: Token atualizado com sucesso
         schema:
           type: object
           properties:
@@ -94,7 +94,7 @@ def refresh_token():
             token_type:
               type: string
       401:
-        description: Invalid refresh token
+        description: Token de atualização inválido
     """
     try:
         data = request.get_json()
@@ -103,7 +103,7 @@ def refresh_token():
         payload = verify_token(refresh_request.refresh_token)
         
         if not payload or payload.get("type") != "refresh":
-            return jsonify({'error': 'Invalid refresh token'}), 401
+            return jsonify({"error": "Invalid refresh token", "message": "Token is invalid or expired"}), 401
         
         username = payload.get("sub")
         
@@ -111,7 +111,7 @@ def refresh_token():
             user = session.query(User).filter(User.username == username).first()
             
             if not user:
-                return jsonify({'error': 'User not found'}), 401
+                return jsonify({"error": "User not found", "message": "User associated with token not found"}), 401
             
             access_token = create_access_token(data={"sub": user.username})
             new_refresh_token = create_refresh_token(data={"sub": user.username})

@@ -18,6 +18,8 @@ def list_books() -> Response | tuple[Response, int]:
     ---
     tags:
       - Livros
+    security:
+      - Bearer: []
     parameters:
       - name: page
         in: query
@@ -88,6 +90,8 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
     ---
     tags:
       - Livros
+    security:
+      - Bearer: []
     parameters:
       - name: book_id
         in: path
