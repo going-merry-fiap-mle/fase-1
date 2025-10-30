@@ -122,17 +122,17 @@ def get_book(book_id : str) -> Response | tuple[Response, int]:
       UUID(book_id)
 
     except ValueError:
-      return jsonify({"description": "Invalid UUID format"}), 400
+      return jsonify({"error": "Invalid value", "message": "badly formed hexadecimal UUID string"}), 400
     
     controller = GetBookByIdController()
     result = controller.call_controller(book_id)
     
     
     if result:
-      return jsonify({"id": book_id, "book": result.model_dump()}), 200
+      return jsonify(result.model_dump()), 200
     
     else:
-      return jsonify({"description": "Book not found"}), 404
+      return jsonify({"error": "Book not found", "message": "No book found with the provided ID"}), 404
       
 
 
