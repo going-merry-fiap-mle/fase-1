@@ -45,6 +45,7 @@ class Database:
         session: Session = self._session_factory()
         try:
             yield session
+            session.commit()
         except Exception as e:
             session.rollback()
             self._logger.error(f"Erro ao gerenciar sessão: {str(e)}")

@@ -19,6 +19,17 @@ Este documento descreve o modelo de dados utilizado pela API de Livros, incluind
 - **id**: UUID (PK)
 - **name**: string (único)
 
+## predictions *(Machine Learning)*
+- **id**: UUID (PK)
+- **book_id**: UUID (FK para books.id)
+- **prediction_type**: string (ex: 'rating', 'category', 'price', 'recommendation')
+- **predicted_value**: string
+- **confidence**: float (0.0-1.0)
+- **model_version**: string
+- **prediction_metadata**: JSON (opcional)
+- **created_at**: datetime
+- **updated_at**: datetime
+
 ## users *(opcional, para autenticação)*
 - **id**: UUID (PK)
 - **username**: string (único)
@@ -32,5 +43,10 @@ Este documento descreve o modelo de dados utilizado pela API de Livros, incluind
 - Todos os IDs são do tipo UUID (ex: `550e8400-e29b-41d4-a716-446655440000`).
 - O campo `role` da tabela `users` é um ENUM com os valores possíveis: 'admin', 'user'.
 - As tabelas opcionais são recomendadas para desafios de autenticação e monitoramento.
-- Relacionamento: `books.category_id` referencia `categories.id`.
+- **Relacionamentos:**
+  - `books.category_id` referencia `categories.id`
+  - `predictions.book_id` referencia `books.id`
+- **Constraints:**
+  - `predictions.confidence` tem CHECK constraint (>= 0.0 AND <= 1.0)
+  - Índices em `predictions.book_id`, `predictions.prediction_type`, `predictions.created_at`
 - Datas em UTC.

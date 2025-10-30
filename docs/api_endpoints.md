@@ -310,47 +310,132 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 
 ## 6. Endpoints para ML (Bônus)
 
-### Dados formatados para features
-- **Endpoint:** `GET /api/v1/ml/features`
-- **Descrição:** Retorna dados prontos para uso como features em modelos ML.
-- **Resposta de exemplo:**
-```json
-{
-  "features": [
-    {"title": "...", "price": 20.0, "rating": 4, "category": "..."}
-  ]
-}
-```
-
-### Dataset para treinamento
-- **Endpoint:** `GET /api/v1/ml/training-data`
-- **Descrição:** Retorna o dataset completo para treinamento de modelos.
-- **Resposta de exemplo:**
-```json
-{
-  "data": [
-    {"title": "...", "price": 20.0, "rating": 4, "category": "..."}
-  ]
-}
-```
-
-### Receber predições
+### Criar ou executar predições de Machine Learning
 - **Endpoint:** `POST /api/v1/ml/predictions`
-- **Descrição:** Recebe dados e retorna predições do modelo.
-- **Request de exemplo:**
+- **Descrição:** Cria uma nova predição ou executa o modelo de ML para gerar uma predição automaticamente. Este endpoint tem dois comportamentos distintos baseados nos parâmetros fornecidos.
+- **Disponibilidade:** Este endpoint está disponível em ambos os ambientes Docker (desenvolvimento e produção). Ambos os containers montam o volume `./models` e carregam os modelos ML na inicialização.
+- **Documentação completa:** Ver `docs/ml_implementation.md` para detalhes completos sobre treinamento, cache, e troubleshooting.
+
+#### Modo 1: Executar ML em Tempo Real
+Endpoint executa o modelo ML e salva o resultado automaticamente no banco de dados.
+
+- **Request:**
 ```json
 {
-  "features": [
-    {"title": "...", "price": 20.0, "rating": 4, "category": "..."}
+  "book_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "prediction_type": "rating"
+}
+```
+
+- **Query Parameters:**
+  - `use_cache` (opcional, boolean, default: true): Se deve usar cache de predições
+
+- **Response (200 OK):**
+```json
+{
+  "prediction": {
+    "book_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "book_title": "The Great Gatsby",
+    "predicted_value": "1",
+    "predicted_label": "High Rating (>=4)",
+    "confidence": 0.85,
+    "features_used": {
+      "price": 29.99,
+      "category": "Fiction",
+      "availability": "In stock",
+      "category_encoded": 0,
+      "availability_encoded": 1
+    },
+    "model_version": "v1.0.0",
+    "from_cache": false
+  },
+  "saved_prediction_id": "uuid-da-predicao-salva"
+}
+```
+
+#### Modo 2: Salvar Predição Pré-calculada
+Endpoint apenas salva uma predição que foi calculada externamente.
+
+- **Request:**
+```json
+{
+  "book_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "prediction_type": "rating",
+  "predicted_value": "5",
+  "confidence": 0.95,
+  "model_version": "v1.0.0",
+  "metadata": {
+    "source": "external_model",
+    "algorithm": "custom"
+  }
+}
+```
+
+- **Response (201 Created):**
+```json
+{
+  "id": "prediction-uuid",
+  "book_id": "book-uuid",
+  "prediction_type": "rating",
+  "predicted_value": "5",
+  "confidence": 0.95,
+  "model_version": "v1.0.0",
+  "metadata": {
+    "source": "external_model",
+    "algorithm": "custom"
+  },
+  "created_at": "2025-10-30T12:00:00Z"
+}
+```
+
+#### Tipos de Predição Válidos
+- `rating` - Predição de rating alto/baixo (>=4 ou <4)
+- `category` - Predição de categoria
+- `price` - Predição de preço
+- `recommendation` - Predição de recomendação
+
+#### Erros Possíveis
+
+**400 Bad Request - Validação:**
+```json
+{
+  "error": "Invalid parameters",
+  "details": [
+    {
+      "field": "book_id",
+      "message": "Input should be a valid string",
+      "type": "string_type"
+    }
   ]
 }
 ```
-- **Resposta de exemplo:**
+
+**404 Not Found - Livro inexistente:**
 ```json
 {
-  "predictions": [0, 1]
+  "error": "Book not found",
+  "message": "Book with id xxx not found"
 }
 ```
+
+**503 Service Unavailable - Modelo não carregado:**
+```json
+{
+  "error": "Model not available",
+  "message": "Model for 'rating' is not loaded. Please train the model first.",
+  "hint": "Run: python ml_training/train_model.py"
+}
+```
+
+#### Observações
+- **Ambientes:** Endpoint disponível em ambos os containers Docker (fiap-backend-dev e fiap-backend-prod)
+- **Volume compartilhado:** Ambos os containers montam `./models:/app/models` do host, compartilhando modelos treinados
+- **Treinamento automático:** Modelo é treinado automaticamente na primeira inicialização se não existir
+- **Cache:** Predições são cacheadas automaticamente para melhor performance
+- **Validação:** `confidence` deve estar entre 0.0 e 1.0
+- **Validação:** `model_version` é obrigatório quando `predicted_value` é fornecido
+- **Persistência:** Todas as predições (executadas ou salvas) são armazenadas na tabela `predictions`
+- **Documentação técnica:** Ver `docs/ml_implementation.md` para detalhes sobre arquitetura, treinamento e troubleshooting
 
 ---
 

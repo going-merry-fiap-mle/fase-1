@@ -54,7 +54,7 @@ COPY start-backend-dev.sh ./
 RUN sed -i 's/\r$//' /app/start-backend-dev.sh && \
     chmod +x /app/start-backend-dev.sh
 
-RUN mkdir -p /app/data /app/logs
+RUN mkdir -p /app/data /app/logs /app/models
 
 EXPOSE 5000
 

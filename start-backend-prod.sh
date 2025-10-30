@@ -5,6 +5,13 @@ echo "[INFO] Iniciando Flask API em Produção..."
 PORT=${PORT:-5000}
 
 echo "[INFO] Backend rodando na porta: ${PORT}"
+if command -v alembic >/dev/null 2>&1; then
+  echo "[INFO] Running alembic migrations..."
+  alembic upgrade head || echo "[WARN] Alembic migrations failed or skipped; continuing startup"
+else
+  echo "[WARN] alembic not installed in environment; skipping migrations"
+fi
+
 
 # Usar Gunicorn para produção
 exec gunicorn \
