@@ -403,8 +403,11 @@ def price_range_books() -> tuple[Response, int]:
       min_price = Decimal(min_str)
       max_price = Decimal(max_str)
 
-    except ValueError:
+    except Exception:
             return jsonify({"error": "Invalid parameters", "message": "Both min and max parameters are required"}), 400
+    
+    if min_price > max_price:
+        return jsonify({"error": "Invalid parameters", "message": "'min' must be less than or equal to 'max'"}), 400
 
     controller = GetBooksByPriceController()
     result = controller.call_controller(page=pagination.page, per_page=pagination.per_page, min_price=min_price, max_price=max_price)

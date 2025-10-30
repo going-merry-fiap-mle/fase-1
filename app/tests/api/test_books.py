@@ -188,3 +188,7 @@ def test_books_by_price_endpoint(client):
     ):
         response = client.get("/api/v1/books/price-range?min=50&max=60")
         assert response.status_code == 200
+
+def test_price_range_min_less_than_max(client):
+    response = client.get("/api/v1/books/price-range?min=50&max=10")
+    assert response.status_code == 400
