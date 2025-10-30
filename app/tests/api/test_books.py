@@ -52,7 +52,7 @@ def test_price_range_missing_params_data(client):
 def test_price_range_invalid_number_param(client):
     # non-numeric min should result in invalid parameters (400) or server error if Decimal handling differs
     response = client.get("/api/v1/books/price-range?min=abc&max=10")
-    assert response.status_code == 500
+    assert response.status_code == 400
 
 def test_books_by_price_endpoint(client):
     with patch(
