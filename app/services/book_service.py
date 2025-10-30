@@ -12,6 +12,30 @@ class BookService:
     def get_books(self, page: int = 1, per_page: int = 10) -> tuple[list[Book], int]:
         return self._book_repository.get_books(page, per_page)
 
+    def search_books(
+        self,
+        title: str | None = None,
+        category: str | None = None,
+        page: int = 1,
+        per_page: int = 10
+    ) -> tuple[list[Book], int]:
+        return self._book_repository.search_books(
+            title=title,
+            category=category,
+            page=page,
+            per_page=per_page
+        )
+
+    def get_top_rated_books(
+        self,
+        page: int = 1,
+        per_page: int = 10
+    ) -> tuple[list[Book], int]:
+        return self._book_repository.get_top_rated_books(
+            page=page,
+            per_page=per_page
+        )
+
     def create_book(
         self,
         title: str,
@@ -32,3 +56,6 @@ class BookService:
 
     def get_book_by_id(self, book_id : str) -> Book | None:
         return self._book_repository.get_book_by_id(book_id)
+      
+    def get_overview_stats(self) -> dict:
+        return self._book_repository.get_overview_stats()

@@ -8,6 +8,20 @@ class IBookRepository(Protocol):
 
     def get_books(self, page: int = 1, per_page: int = 10) -> tuple[list[Book], int]: ...
 
+    def search_books(
+        self,
+        title: str | None = None,
+        category: str | None = None,
+        page: int = 1,
+        per_page: int = 10
+    ) -> tuple[list[Book], int]: ...
+
+    def get_top_rated_books(
+        self,
+        page: int = 1,
+        per_page: int = 10
+    ) -> tuple[list[Book], int]: ...
+
     def create_book(
         self,
         title: str,
@@ -19,3 +33,5 @@ class IBookRepository(Protocol):
     ) -> Book: ...
 
     def get_book_by_id(self, book_id) -> Book | None: ...
+      
+    def get_overview_stats(self) -> dict: ...
