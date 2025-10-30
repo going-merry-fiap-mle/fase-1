@@ -445,5 +445,4 @@ Retornado quando ocorre um erro inesperado no servidor.
 - Endpoints de autenticação e ML são opcionais/bônus, conforme arquitetura do projeto.
 - **Paginação:** Todos os endpoints paginados validam `page >= 1` e `per_page` entre 1 e 100.
 - **Consistência:** Todos os endpoints paginados usam a chave `items` (não `results`) para a lista de resultados.
-- Endpoints de autenticação e ML são opcionais/bônus.
 - Para mais detalhes sobre a arquitetura e funcionamento, consulte o arquivo `docs/architecture.md`.
