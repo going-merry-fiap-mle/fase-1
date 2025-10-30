@@ -91,10 +91,10 @@ def get_book(book_id : str) -> Response | tuple[Response, int]:
         in: path
         type: string
         required: true
-        description: "Book ID (UUID)"
+        description: "ID do livro (UUID)"
     responses:
       200:
-        description: Book details
+        description: Detalhes do livro
         schema:
           type: object
           properties:
@@ -113,9 +113,9 @@ def get_book(book_id : str) -> Response | tuple[Response, int]:
             image_url:
               type: string
       404:
-        description: Book not found
+        description: Livro não encontrado
       400:
-        description: Invalid UUID format
+        description: UUID inválido
     """
 
     try:

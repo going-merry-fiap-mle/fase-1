@@ -52,7 +52,7 @@ class BookRepository(IBookRepository):
 
     def get_book_by_id(self, book_id : str) -> DomainBook | None:
         with get_session() as session:
-            book_orm = session.get(Book, book_id)
+            book_orm = session.get(Book, UUID(book_id))
 
             if book_orm is None:
                 return None
