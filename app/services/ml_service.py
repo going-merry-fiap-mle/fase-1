@@ -1,16 +1,19 @@
-from typing import Optional, Tuple, List
+from typing import Tuple, List
 import re
 from decimal import Decimal
+import random
 
 from app.port.book_port import IBookRepository
+from app.utils.logger import AppLogger
 
 
 class MLService:
 
     def __init__(self, book_repository: IBookRepository) -> None:
         self._book_repository = book_repository
+        self.logger = AppLogger(__name__)
 
-    def _parse_price(self, price_str: Optional[str]) -> Optional[float]:
+    def _parse_price(self, price_str: str | None) -> float | None:
         if price_str is None:
             return None
 
@@ -33,14 +36,15 @@ class MLService:
         try:
             return float(match.group(0))
         except ValueError:
+            self.logger.error("ml_service: Failed to parse price")
             return None
 
-    def _availability_flag(self, availability: Optional[str]) -> int:
+    def _availability_flag(self, availability: str | None) -> int:
         if not availability:
             return 0
         return 1 if "in stock" in availability.lower() or "disponível" in availability.lower() else 0
 
-    def _image_present(self, image_url: Optional[str]) -> int:
+    def _image_present(self, image_url: str | None) -> int:
         return 1 if image_url and image_url.strip() != "" else 0
 
     def build_features_from_book(self, book) -> dict:
@@ -67,7 +71,7 @@ class MLService:
             "title": title,
         }
 
-    def get_features(self, page: int = 1, per_page: int = 10, category: Optional[str] = None) -> Tuple[List[dict], int]:
+    def get_features(self, page: int = 1, per_page: int = 10, category: str | None = None) -> Tuple[List[dict], int]:
         books, total = self._book_repository.get_books(page, per_page, category)
         items = [self.build_features_from_book(book) for book in books]
         return items, total
@@ -102,8 +106,6 @@ class MLService:
             rows.append(features)
 
         if sample is not None and rows:
-            import random
-
             rng = random.Random(seed)
 
             if 0 < sample < 1:

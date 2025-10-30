@@ -1,4 +1,4 @@
-from typing import Protocol, Optional
+from typing import Protocol
 from uuid import UUID
 
 from app.domain.models.book_domain_model import Book
@@ -6,7 +6,7 @@ from app.domain.models.book_domain_model import Book
 
 class IBookRepository(Protocol):
 
-    def get_books(self, page: Optional[int] = 1, per_page: Optional[int] = 10, category: Optional[str] = None) -> tuple[list[Book], int]: ...
+    def get_books(self, page: int | None = 1, per_page: int | None = 10, category: str | None = None) -> tuple[list[Book], int]: ...
 
     def search_books(
         self,

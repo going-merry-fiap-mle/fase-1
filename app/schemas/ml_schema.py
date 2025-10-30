@@ -1,16 +1,13 @@
 from pydantic import BaseModel
-from typing import Optional
-
 
 class FeatureOut(BaseModel):
     id: str
-    price_num: Optional[float]
-    rating: Optional[int]
+    price_num: float | None
+    rating: int | None
     availability_flag: int
     category: str
     image_present: int
-    # raw fields for traceability
-    title: Optional[str]
+    title: str | None
 
 
 class FeaturesResponse(BaseModel):
@@ -25,4 +22,4 @@ class FeaturesResponse(BaseModel):
 class FeaturesQueryParams(BaseModel):
     page: int = 1
     per_page: int = 10
-    category: Optional[str] = None
+    category: str | None = None
