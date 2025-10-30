@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Protocol
 from uuid import UUID
 
@@ -32,4 +33,6 @@ class IBookRepository(Protocol):
         image_url: str
     ) -> Book: ...
 
+    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> tuple[list[Book], int]: ...
+    
     def get_overview_stats(self) -> dict: ...

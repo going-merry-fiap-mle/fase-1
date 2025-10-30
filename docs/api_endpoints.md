@@ -153,7 +153,36 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 }
 ```
 
----
+### Buscar livros por faixa de preço
+- **Endpoint:** `GET /api/v1/books/price-range`
+- **Descrição:** Retorna livros cujo preço esteja dentro da faixa informada, com paginação opcional.
+- **Parâmetros:**
+  - `min` (query, number|string, obrigatório): Valor mínimo do preço (ex: 1.00)
+  - `max` (query, number|string, obrigatório): Valor máximo do preço (ex: 50.00)
+  - `page` (query, integer, opcional, padrão: 1): Número da página
+  - `per_page` (query, integer, opcional, padrão: 10): Itens por página
+- **Resposta de exemplo (200):**
+```json
+{
+  "items": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "A Light in the Attic",
+      "price": "25.50",
+      "rating": 3,
+      "availability": "In stock",
+      "category": "Poetry",
+      "image_url": "https://books.toscrape.com/media/cache/2c/da/2cdad67c44b002e7ead0cc35693c0e8b.jpg"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 10,
+    "total_items": 5,
+    "total_pages": 1
+  }
+}
+```
 
 ## 2. Categorias
 
