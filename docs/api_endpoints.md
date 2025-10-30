@@ -353,20 +353,22 @@ A seguir estão os endpoints expostos pelo blueprint `ml` (prefixo `/api/v1/ml`)
 ### 2) Manifesto das features
 - **Endpoint:** `GET /api/v1/ml/manifest`
 - **Descrição:** Retorna o manifesto das features, usado para entender os nomes, tipos e se campos são opcionais.
-- **Formato esperado de retorno:**
+- **Formato esperado de retorno (exatamente como gerado por `MLService.get_feature_manifest()`):**
 ```json
 {
+  "feature_version": "v1",
   "features": [
-    {"name": "price_num", "type": "float", "nullable": true},
-    {"name": "rating", "type": "integer", "nullable": true},
-    {"name": "availability_flag", "type": "integer", "nullable": false},
-    {"name": "category", "type": "string", "nullable": false},
-    {"name": "image_present", "type": "integer", "nullable": false}
-  ],
-  "feature_version": "v1"
+    {"name": "id", "dtype": "string", "nullable": false, "description": "Unique book id"},
+    {"name": "price_num", "dtype": "float", "nullable": true, "description": "Normalized price as float"},
+    {"name": "rating", "dtype": "int", "nullable": true, "description": "Numeric rating (1-5)"},
+    {"name": "availability_flag", "dtype": "int", "nullable": false, "description": "Binary flag: 1 if available"},
+    {"name": "category", "dtype": "string", "nullable": false, "description": "Category name as string (to be encoded)"},
+    {"name": "image_present", "dtype": "int", "nullable": false, "description": "1 if image_url present"},
+    {"name": "title", "dtype": "string", "nullable": true, "description": "Book title (raw text)"}
+  ]
 }
 ```
-- **Observação:** o endpoint é usado internamente pelo endpoint `/training-data` para gerar o cabeçalho CSV.
+- **Observação:** o manifesto usa a chave `dtype` (em vez de `type`) e inclui uma breve `description` para cada feature. Este manifesto é usado internamente para gerar o cabeçalho CSV quando o endpoint `/api/v1/ml/training-data?format=csv` é solicitado.
 
 ### 3) Dataset para treinamento (JSON ou CSV)
 - **Endpoint:** `GET /api/v1/ml/training-data`
