@@ -210,7 +210,7 @@ def search_books() -> Response | tuple[Response, int]:
               type: string
               example: "At least one search parameter (title or category) must be provided"
     """
-title = request.args.get('title', type=str)
+    title = request.args.get('title', type=str)
     category = request.args.get('category', type=str)
 
     if title is not None:
