@@ -8,9 +8,6 @@ from app.infrastructure.session_manager import get_session
 from app.port.book_port import IBookRepository
 from sqlalchemy import func
 from typing import Optional
-from sqlalchemy import func
-
-
 class BookRepository(IBookRepository):
 
     def get_books(self, page: Optional[int] = 1, per_page: Optional[int] = 10, category: Optional[str] = None) -> tuple[list[DomainBook], int]:
