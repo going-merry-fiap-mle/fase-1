@@ -30,7 +30,7 @@ services:
 
   dd-agent:
     image: gcr.io/datadoghq/agent:7
-    container_name: dd-agent
+    container_name: dd-agent-dev
     restart: always
     environment:
       DD_API_KEY: ${DD_API_KEY}
