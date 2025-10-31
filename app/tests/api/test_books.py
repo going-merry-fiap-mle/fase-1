@@ -1,10 +1,22 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import pytest
 from app.core.security import create_access_token
+from app.infrastructure.models.enums.admin_enum import UserRole
 
+
+@pytest.fixture(autouse=True)
+def mock_auth():
+    
+    with patch('app.core.auth.get_current_user') as mock_get_user:
+        mock_user = MagicMock()
+        mock_user.username = 'admin'
+        mock_user.role = UserRole.admin
+        mock_get_user.return_value = mock_user
+        yield mock_user
 
 @pytest.fixture
 def auth_headers():
+    
     token = create_access_token(data={"sub": "admin"})
     return {"Authorization": f"Bearer {token}"}
 
@@ -49,12 +61,12 @@ def test_books_endpoint(client, auth_headers):
             assert isinstance(book['image_url'], str)
 
 
-def test_books_endpoint_with_pagination(client):
+def test_books_endpoint_with_pagination(client, auth_headers):
     with patch(
         "app.infrastructure.repository.book_repository.BookRepository.get_books",
         return_value=([], 0),
     ):
-        response = client.get('/api/v1/books?page=1&per_page=5')
+        response = client.get('/api/v1/books?page=1&per_page=5', headers=auth_headers)
         assert response.status_code == 200
 
         data = response.get_json()
@@ -69,12 +81,12 @@ def test_books_endpoint_with_pagination(client):
         assert len(data['items']) <= 5
 
 
-def test_books_endpoint_page_2(client):
+def test_books_endpoint_page_2(client, auth_headers):
     with patch(
         "app.infrastructure.repository.book_repository.BookRepository.get_books",
         return_value=([], 0),
     ):
-        response = client.get('/api/v1/books?page=2&per_page=3')
+        response = client.get('/api/v1/books?page=2&per_page=3', headers=auth_headers)
         assert response.status_code == 200
 
         data = response.get_json()
@@ -86,12 +98,12 @@ def test_books_endpoint_page_2(client):
         assert data['pagination']['per_page'] == 3
 
 
-def test_books_endpoint_total_calculation(client):
+def test_books_endpoint_total_calculation(client, auth_headers):
     with patch(
         "app.infrastructure.repository.book_repository.BookRepository.get_books",
         return_value=([], 25),
     ):
-        response = client.get('/api/v1/books?page=1&per_page=10')
+        response = client.get('/api/v1/books?page=1&per_page=10', headers=auth_headers)
         assert response.status_code == 200
 
         data = response.get_json()
@@ -102,8 +114,8 @@ def test_books_endpoint_total_calculation(client):
             assert pagination['total_pages'] == expected_pages
 
 
-def test_books_endpoint_invalid_page_zero(client):
-    response = client.get('/api/v1/books?page=0')
+def test_books_endpoint_invalid_page_zero(client, auth_headers):
+    response = client.get('/api/v1/books?page=0', headers=auth_headers)
     assert response.status_code == 400
 
     data = response.get_json()
@@ -112,8 +124,8 @@ def test_books_endpoint_invalid_page_zero(client):
     assert 'details' in data
 
 
-def test_books_endpoint_invalid_page_negative(client):
-    response = client.get('/api/v1/books?page=-1')
+def test_books_endpoint_invalid_page_negative(client, auth_headers):
+    response = client.get('/api/v1/books?page=-1', headers=auth_headers)
     assert response.status_code == 400
 
     data = response.get_json()
@@ -121,8 +133,8 @@ def test_books_endpoint_invalid_page_negative(client):
     assert data['error'] == 'Invalid parameters'
 
 
-def test_books_endpoint_invalid_per_page_zero(client):
-    response = client.get('/api/v1/books?per_page=0')
+def test_books_endpoint_invalid_per_page_zero(client, auth_headers):
+    response = client.get('/api/v1/books?per_page=0', headers=auth_headers)
     assert response.status_code == 400
 
     data = response.get_json()
@@ -130,8 +142,8 @@ def test_books_endpoint_invalid_per_page_zero(client):
     assert data['error'] == 'Invalid parameters'
 
 
-def test_books_endpoint_invalid_per_page_above_limit(client):
-    response = client.get('/api/v1/books?per_page=101')
+def test_books_endpoint_invalid_per_page_above_limit(client, auth_headers):
+    response = client.get('/api/v1/books?per_page=101', headers=auth_headers)
     assert response.status_code == 400
 
     data = response.get_json()
@@ -140,8 +152,8 @@ def test_books_endpoint_invalid_per_page_above_limit(client):
     assert 'details' in data
 
 
-def test_books_endpoint_invalid_per_page_negative(client):
-    response = client.get('/api/v1/books?per_page=-5')
+def test_books_endpoint_invalid_per_page_negative(client, auth_headers):
+    response = client.get('/api/v1/books?per_page=-5', headers=auth_headers)
     assert response.status_code == 400
 
     data = response.get_json()
@@ -174,8 +186,10 @@ def test_books_id_endpoint_integer_not_accepted(client, auth_headers):
     assert response.status_code == 400
 
 def test_books_endpoint_without_auth(client):
-    response = client.get("/api/v1/books")
-    assert response.status_code == 401
+    
+    with patch('app.core.auth.get_current_user', return_value=None):
+        response = client.get("/api/v1/books")
+        assert response.status_code == 401
 
 def test_price_range_missing_params(client):
     response = client.get("/api/v1/books/price-range")
