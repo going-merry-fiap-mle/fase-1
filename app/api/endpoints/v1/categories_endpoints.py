@@ -14,6 +14,12 @@ def list_categories() -> Response | tuple[Response, int]:
     ---
     tags:
       - Categorias
+    description: |
+      Retorna uma lista paginada de todas as categorias disponíveis.
+
+      **Paginação:**
+      - page: deve ser >= 1
+      - per_page: deve estar entre 1 e 100
     parameters:
       - name: page
         in: query
@@ -53,7 +59,17 @@ def list_categories() -> Response | tuple[Response, int]:
                 total_pages:
                   type: integer
       400:
-        description: Parâmetros inválidos
+        description: Parâmetros inválidos (ex. paginação fora dos limites)
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Invalid parameters"
+            details:
+              type: array
+              items:
+                type: object
     """
     pagination = PaginationParams(
         page=request.args.get('page', 1, type=int),
