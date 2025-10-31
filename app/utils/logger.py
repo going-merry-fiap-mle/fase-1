@@ -1,16 +1,19 @@
 import inspect
+import json
 import logging
 import os
 from http import HTTPStatus
 
 
-class LogFormatter(logging.Formatter):
-
+class JsonLogFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
-        base_format = f"[%(asctime)s] [%(levelname)s] " f"%(message)s | logger=%(name)s"
-
-        formatter = logging.Formatter(base_format, "%Y-%m-%d %H:%M:%S")
-        return formatter.format(record)
+        log_record = {
+            "timestamp": self.formatTime(record, "%Y-%m-%d %H:%M:%S"),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        return json.dumps(log_record)
 
 
 class LogManager:
@@ -26,7 +29,7 @@ class LogManager:
         root.setLevel(log_level)
 
         console_handler = logging.StreamHandler()
-        console_handler.setFormatter(LogFormatter())
+        console_handler.setFormatter(JsonLogFormatter())
         root.addHandler(console_handler)
 
         logging.captureWarnings(True)
