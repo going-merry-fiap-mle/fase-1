@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -11,7 +11,7 @@ class PredictionBase(BaseModel):
     predicted_value: str | None = None
     confidence: float | None = Field(None, ge=0.0, le=1.0)
     model_version: str | None = Field(None, min_length=1)
-    metadata: Optional[dict] = None
+    metadata: dict | None = None
     created_at: datetime | None = None
 
     @field_validator("predicted_value")

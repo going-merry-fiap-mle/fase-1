@@ -1,4 +1,6 @@
 from http import HTTPStatus
+from pathlib import Path
+import subprocess
 
 from flasgger import Swagger
 from flask import Flask, jsonify
@@ -6,6 +8,7 @@ from pydantic import ValidationError
 from werkzeug.exceptions import UnsupportedMediaType
 
 from app.api.register_endpoints import register_endpoints
+from app.ml.model_loader import ml_loader
 from app.services.ml_model_service import BookNotFoundForMLError, MLModelNotLoadedError
 from app.utils.environment_loader import EnvironmentLoader
 from app.utils.logger import AppLogger, LogManager
@@ -41,16 +44,13 @@ class FlaskApp:
         """Carregar modelos de Machine Learning na inicialização"""
         self._ensure_ml_model()
         try:
-            from app.ml.model_loader import ml_loader
+            # ml_loader já é carregado no import do topo do arquivo
             self.logger.info("Modelos ML carregados com sucesso")
         except Exception as e:
             self.logger.error(f"Erro ao carregar modelos ML: {str(e)}")
 
     def _ensure_ml_model(self) -> None:
         """Garante que modelo ML existe, treina automaticamente se necessário"""
-        from pathlib import Path
-        import subprocess
-
         model_path = Path("models/rating_classifier_v1.pkl")
 
         if model_path.exists():
