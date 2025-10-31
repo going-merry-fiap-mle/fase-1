@@ -1,5 +1,6 @@
 from decimal import Decimal
 from uuid import UUID
+import math
 
 from app.domain.models.book_domain_model import Book as DomainBook
 from app.infrastructure.models.book import Book
@@ -7,21 +8,29 @@ from app.infrastructure.models.category import Category
 from app.infrastructure.session_manager import get_session
 from app.port.book_port import IBookRepository
 from sqlalchemy import func
-
-
+from typing import Optional
 class BookRepository(IBookRepository):
 
-    def get_books(self, page: int = 1, per_page: int = 10) -> tuple[list[DomainBook], int]:
+    def get_books(self, page: Optional[int] = 1, per_page: Optional[int] = 10, category: Optional[str] = None) -> tuple[list[DomainBook], int]:
         with get_session() as session:
-            total = session.query(Book).count()
+            query = session.query(Book)
 
-            offset = (page - 1) * per_page
-            books_orm = (
-                session.query(Book)
-                .offset(offset)
-                .limit(per_page)
-                .all()
-            )
+            if category:
+                cat_name = category.strip().lower()
+                query = query.join(Category).filter(func.lower(Category.name) == cat_name)
+
+            total = query.count()
+
+            if per_page is None:
+                books_orm = query.all()
+            else:
+                offset = ((page or 1) - 1) * per_page
+                books_orm = (
+                    query
+                    .offset(offset)
+                    .limit(per_page)
+                    .all()
+                )
 
             domain_books = [book.to_domain() for book in books_orm]
 
@@ -104,6 +113,27 @@ class BookRepository(IBookRepository):
 
             return domain_book
           
+    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> tuple[list[DomainBook], int]:
+        with get_session() as session:
+            filters = [Book.price >= min_price]
+            if not math.isinf(max_price):
+                filters.append(Book.price <= max_price)
+
+            filtered_query = session.query(Book).filter(*filters)
+            total = filtered_query.count()
+
+            offset = (page - 1) * per_page
+            books_orm = (
+                filtered_query
+                .offset(offset)
+                .limit(per_page)
+                .all()
+            )
+
+            domain_books = [book.to_domain() for book in books_orm]
+
+            return domain_books, total
+         
     def get_overview_stats(self) -> dict:
         with get_session() as session:
             total = session.query(func.count(Book.id)).scalar() or 0

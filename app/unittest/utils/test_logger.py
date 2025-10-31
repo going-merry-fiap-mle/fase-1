@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import app.utils.logger as logger_module
-from app.utils.logger import AppLogger, LogFormatter, LogManager
+from app.utils.logger import AppLogger, JsonLogFormatter, LogManager
 
 
 class TestLogger(unittest.TestCase):
@@ -28,7 +28,7 @@ class TestLogger(unittest.TestCase):
         handler = handlers[0]
         self.assertIsInstance(handler, logging.StreamHandler)
         self.assertIsNotNone(handler.formatter)
-        self.assertIsInstance(handler.formatter, LogFormatter)
+        self.assertIsInstance(handler.formatter, JsonLogFormatter)
         self.assertEqual(self.root_logger.level, logging.DEBUG)
 
     def test_logging_methods_emit_expected_levels_and_default_statuses(self) -> None:
@@ -69,7 +69,7 @@ class TestLogger(unittest.TestCase):
             "inspect.getouterframes", return_value=fake_frames
         ):
             mock_currentframe.return_value = object()
-            formatter = LogFormatter()
+            formatter = JsonLogFormatter()
             record = logging.LogRecord(
                 name="mylogger",
                 level=logging.INFO,
@@ -81,8 +81,8 @@ class TestLogger(unittest.TestCase):
             )
             formatted = formatter.format(record)
 
-        self.assertIn("logger=mylogger", formatted)
-        self.assertIn("hello world", formatted)
+        self.assertIn('"logger": "mylogger"', formatted)
+        self.assertIn('"message": "hello world"', formatted)
 
     def test_setup_falls_back_to_info_on_invalid_level(self):
         LogManager.setup(level="NOT_A_LEVEL")
@@ -90,11 +90,11 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(self.root_logger.level, logging.INFO)
 
         self.assertTrue(self.root_logger.handlers)
-        self.assertIsInstance(self.root_logger.handlers[0].formatter, LogFormatter)
+        self.assertIsInstance(self.root_logger.handlers[0].formatter, JsonLogFormatter)
 
     def test_formatter_uses_unknown_file_on_inspect_failure(self):
         with patch("inspect.currentframe", side_effect=RuntimeError("boom")):
-            formatter = LogFormatter()
+            formatter = JsonLogFormatter()
             record = logging.LogRecord(
                 name="mylogger",
                 level=logging.INFO,
@@ -107,7 +107,7 @@ class TestLogger(unittest.TestCase):
             formatted = formatter.format(record)
 
         self.assertIsInstance(formatted, str)
-        self.assertIn("logger=mylogger", formatted)
+        self.assertIn('"logger": "mylogger"', formatted)
 
     def test_app_logger_uses_unknown_file_on_stack_failure(self):
         mock_logger = MagicMock()

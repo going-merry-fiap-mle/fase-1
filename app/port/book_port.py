@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Protocol
 from uuid import UUID
 
@@ -6,7 +7,7 @@ from app.domain.models.book_domain_model import Book
 
 class IBookRepository(Protocol):
 
-    def get_books(self, page: int = 1, per_page: int = 10) -> tuple[list[Book], int]: ...
+    def get_books(self, page: int | None = 1, per_page: int | None = 10, category: str | None = None) -> tuple[list[Book], int]: ...
 
     def search_books(
         self,
@@ -34,4 +35,6 @@ class IBookRepository(Protocol):
 
     def get_book_by_id(self, book_id: str) -> Book | None: ...
       
+    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> tuple[list[Book], int]: ...
+    
     def get_overview_stats(self) -> dict: ...

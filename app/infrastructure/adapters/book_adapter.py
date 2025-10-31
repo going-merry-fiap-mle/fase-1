@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import UUID
 
 from app.domain.models.book_domain_model import Book
@@ -10,8 +11,8 @@ class BookAdapter(IBookRepository):
     def __init__(self) -> None:
         self._repository = BookRepository()
 
-    def get_books(self, page: int = 1, per_page: int = 10) -> tuple[list[Book], int]:
-        return self._repository.get_books(page, per_page)
+    def get_books(self, page: int | None = 1, per_page: int | None = 10, category: str | None = None) -> tuple[list[Book], int]:
+        return self._repository.get_books(page=page, per_page=per_page, category=category)
 
     def search_books(
         self,
@@ -57,6 +58,9 @@ class BookAdapter(IBookRepository):
 
     def get_book_by_id(self, book_id : str) -> Book | None:
         return self._repository.get_book_by_id(book_id)
+      
+    def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> tuple[list[Book], int]:
+        return self._repository.get_books_by_price(page, per_page, min_price, max_price)
       
     def get_overview_stats(self) -> dict:
         return self._repository.get_overview_stats()
