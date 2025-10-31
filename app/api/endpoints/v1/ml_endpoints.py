@@ -26,7 +26,7 @@ def create_prediction() -> Response | tuple[Response, int]:
     Criar ou executar predição de Machine Learning
     ---
     tags:
-      - Machine Learning
+      - ML
     description: |
       Cria uma nova predição ou executa o modelo de ML para gerar uma predição.
 
