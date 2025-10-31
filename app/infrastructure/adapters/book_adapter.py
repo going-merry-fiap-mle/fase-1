@@ -56,6 +56,9 @@ class BookAdapter(IBookRepository):
             image_url=image_url
         )
 
+    def get_book_by_id(self, book_id : str) -> Book | None:
+        return self._repository.get_book_by_id(book_id)
+      
     def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> tuple[list[Book], int]:
         return self._repository.get_books_by_price(page, per_page, min_price, max_price)
       

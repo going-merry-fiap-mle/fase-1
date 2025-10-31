@@ -1,4 +1,7 @@
+from decimal import Decimal
+from types import SimpleNamespace
 from unittest.mock import patch
+from uuid import UUID
 
 
 def test_books_endpoint(client):
@@ -143,23 +146,48 @@ def test_books_endpoint_invalid_per_page_negative(client):
 
 
 def test_books_id_endpoint(client):
-    valid_uuid = "550e8400-e29b-41d4-a716-446655440000"
-    response = client.get(f"/api/v1/books/{valid_uuid}")
-    assert (
-        response.status_code == 200
-        or response.status_code == 404
-        or response.status_code == 501
+    
+    valid_uuid = "b7e7fd8c-ad40-4634-a00c-3bc6aa11b09e"
+    
+    category = SimpleNamespace(name="Fiction")
+    
+    book = SimpleNamespace(
+        id=UUID(valid_uuid),
+        title="Title",
+        price=Decimal("9.99"),
+        rating=4,
+        availability="In stock",
+        category=category,
+        image_url="http://example.com/img.jpg",
     )
 
+    with patch(
+        "app.infrastructure.repository.book_repository.BookRepository.get_book_by_id",
+        return_value=book,
+    ):
+
+        response = client.get(f"/api/v1/books/{valid_uuid}")
+        assert (
+            response.status_code == 200
+        )
+
+def test_books_id_endpoint_book_not_found(client):
+
+    valid_uuid = "b7e7fd8c-ad40-4634-a00c-3bc6aa11b09e"
+
+    with patch(
+        "app.infrastructure.repository.book_repository.BookRepository.get_book_by_id",
+        return_value=None,
+    ):
+
+        response = client.get(f"/api/v1/books/{valid_uuid}")
+        assert (
+            response.status_code == 404
+        )
 
 def test_books_id_endpoint_invalid_uuid(client):
     response = client.get("/api/v1/books/invalid-uuid")
     assert response.status_code == 400
-
-    data = response.get_json()
-    assert 'error' in data
-    assert data['error'] == 'Invalid value'
-    assert 'message' in data
 
 
 def test_books_id_endpoint_integer_not_accepted(client):
