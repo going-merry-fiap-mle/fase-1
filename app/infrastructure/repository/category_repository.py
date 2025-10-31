@@ -32,8 +32,8 @@ class CategoryRepository(ICategoryRepository):
                 domain_category = DomainCategory(name=name)
                 category_orm = Category.from_domain(domain_category)
                 session.add(category_orm)
-                session.commit()
                 session.flush()
+                session.commit()
 
             return category_orm.to_domain()
 

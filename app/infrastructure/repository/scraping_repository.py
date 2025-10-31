@@ -23,6 +23,6 @@ class ScrapingRepository(IScrapingRepository):
             books_orm = [Book.from_domain(book) for book in books]
 
             session.bulk_save_objects(books_orm)
-            session.commit()
             session.flush()
+            session.commit()
             self.logger.info(f"Inserted {len(books)} books into the database")
