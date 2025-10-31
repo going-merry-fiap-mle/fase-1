@@ -57,16 +57,15 @@ def create_prediction() -> Response | tuple[Response, int]:
               type: string
               format: uuid
               description: "UUID do livro"
-              example: "123e4567-e89b-12d3-a456-426614174000"
+              example: "afdf58a0-ce12-416d-b6fd-9b8ffd097f3c"
             prediction_type:
               type: string
               description: "Tipo de predição"
-              example: "rating_prediction"
+              example: "rating"
             predicted_value:
-              type: number
-              format: float
+              type: string
               description: "Valor predito (opcional - se omitido, o modelo será executado)"
-              example: 4.5
+              example: "4.5"
             confidence:
               type: number
               format: float
@@ -77,10 +76,11 @@ def create_prediction() -> Response | tuple[Response, int]:
             model_version:
               type: string
               description: "Versão do modelo"
-              example: "v1.0.0"
+              example: "external_v1.0"
             metadata:
               type: object
               description: "Metadados adicionais"
+              example: {"source": "external_api"}
       - name: use_cache
         in: query
         type: boolean
