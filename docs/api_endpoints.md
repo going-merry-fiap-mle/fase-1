@@ -153,7 +153,36 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 }
 ```
 
----
+### Buscar livros por faixa de preço
+- **Endpoint:** `GET /api/v1/books/price-range`
+- **Descrição:** Retorna livros cujo preço esteja dentro da faixa informada, com paginação opcional.
+- **Parâmetros:**
+  - `min` (query, number|string, obrigatório): Valor mínimo do preço (ex: 1.00)
+  - `max` (query, number|string, obrigatório): Valor máximo do preço (ex: 50.00)
+  - `page` (query, integer, opcional, padrão: 1): Número da página
+  - `per_page` (query, integer, opcional, padrão: 10): Itens por página
+- **Resposta de exemplo (200):**
+```json
+{
+  "items": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "A Light in the Attic",
+      "price": "25.50",
+      "rating": 3,
+      "availability": "In stock",
+      "category": "Poetry",
+      "image_url": "https://books.toscrape.com/media/cache/2c/da/2cdad67c44b002e7ead0cc35693c0e8b.jpg"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 10,
+    "total_items": 5,
+    "total_pages": 1
+  }
+}
+```
 
 ## 2. Categorias
 
@@ -310,6 +339,8 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 
 ## 6. Endpoints para ML (Bônus)
 
+A seguir estão os endpoints expostos pelo blueprint `ml` (prefixo `/api/v1/ml`). Eles permitem criar/executar predições, listar features, obter o manifesto das features e exportar dataset para treinamento (em JSON ou CSV).
+
 ### Criar ou executar predições de Machine Learning
 - **Endpoint:** `POST /api/v1/ml/predictions`
 - **Descrição:** Cria uma nova predição ou executa o modelo de ML para gerar uma predição automaticamente. Este endpoint tem dois comportamentos distintos baseados nos parâmetros fornecidos.
@@ -439,6 +470,96 @@ Endpoint apenas salva uma predição que foi calculada externamente.
 
 ---
 
+### Listar features (paginado)
+- **Endpoint:** `GET /api/v1/ml/features`
+- **Descrição:** Retorna uma resposta paginada com os registros transformados em features prontos para uso em modelos de ML.
+- **Parâmetros (query):**
+  - `page` (integer, opcional, padrão: 1)
+  - `per_page` (integer, opcional, padrão: 10)
+  - `category` (string, opcional): filtrar por categoria de livros
+- **Schema de item (FeatureOut):**
+  - `id` (string)
+  - `price_num` (float | null)
+  - `rating` (int | null)
+  - `availability_flag` (int) - flag binária indicando disponibilidade
+  - `category` (string)
+  - `image_present` (int) - 1/0 indicando presença de imagem
+  - `title` (string | null) - campo bruto para rastreabilidade
+- **Resposta de exemplo:**
+```json
+{
+  "items": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "price_num": 51.77,
+      "rating": 3,
+      "availability_flag": 1,
+      "category": "Poetry",
+      "image_present": 1,
+      "title": "A Light in the Attic"
+    }
+  ],
+  "total": 100,
+  "page": 1,
+  "per_page": 10,
+  "total_pages": 10,
+  "feature_version": "v1"
+}
+```
+
+### Manifesto das features
+- **Endpoint:** `GET /api/v1/ml/manifest`
+- **Descrição:** Retorna o manifesto das features, usado para entender os nomes, tipos e se campos são opcionais.
+- **Formato esperado de retorno (exatamente como gerado por `MLService.get_feature_manifest()`):**
+```json
+{
+  "feature_version": "v1",
+  "features": [
+    {"name": "id", "dtype": "string", "nullable": false, "description": "Unique book id"},
+    {"name": "price_num", "dtype": "float", "nullable": true, "description": "Normalized price as float"},
+    {"name": "rating", "dtype": "int", "nullable": true, "description": "Numeric rating (1-5)"},
+    {"name": "availability_flag", "dtype": "int", "nullable": false, "description": "Binary flag: 1 if available"},
+    {"name": "category", "dtype": "string", "nullable": false, "description": "Category name as string (to be encoded)"},
+    {"name": "image_present", "dtype": "int", "nullable": false, "description": "1 if image_url present"},
+    {"name": "title", "dtype": "string", "nullable": true, "description": "Book title (raw text)"}
+  ]
+}
+```
+- **Observação:** o manifesto usa a chave `dtype` (em vez de `type`) e inclui uma breve `description` para cada feature. Este manifesto é usado internamente para gerar o cabeçalho CSV quando o endpoint `/api/v1/ml/training-data?format=csv` é solicitado.
+
+### Dataset para treinamento (JSON ou CSV)
+- **Endpoint:** `GET /api/v1/ml/training-data`
+- **Descrição:** Retorna um dataset pronto para treinar modelos. Pode retornar JSON ou CSV. Permite amostragem via `sample` e controle de semente via `seed`.
+- **Parâmetros (query):**
+  - `label` (string, opcional, padrão: `rating`): nome do atributo que será usado como label/target
+  - `sample` (number, opcional): se estiver entre 0 e 1, trata como fração (ex: 0.1 para 10%); se >=1 trata como número absoluto de linhas. Se inválido, será ignorado.
+  - `seed` (integer, opcional): semente para amostragem reprodutível
+  - `format` (string, opcional, padrão: `json`): `json` ou `csv`
+- **Comportamento/erros:**
+  - Se `label` inválido ou outra condição for detectada, o endpoint pode retornar 400 com mensagem de erro.
+  - Para `format=csv` o serviço retorna um anexo (`Content-Disposition: attachment; filename=training_data.csv`) com `text/csv`.
+- **Resposta de exemplo (JSON):**
+```json
+{
+  "rows": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "price_num": 51.77,
+      "rating": 3,
+      "availability_flag": 1,
+      "category": "Poetry",
+      "image_present": 1,
+      "title": "A Light in the Attic"
+    }
+  ],
+  "rows_count": 1,
+  "total": 100,
+  "format": "json"
+}
+```
+
+---
+
 ## 7. Documentação Swagger
 
 ### Acessar documentação interativa da API
@@ -488,10 +609,10 @@ Retornado quando ocorre um erro inesperado no servidor.
 ---
 
 ## Observações
-- Todos os endpoints retornam respostas no formato JSON, exceto `/apidocs/`, que retorna uma interface web.
+- Todos os endpoints retornam respostas no formato JSON por padrão. O endpoint `/api/v1/ml/training-data` pode retornar CSV quando solicitado com `format=csv`.
 - IDs são UUIDs (ex: `550e8400-e29b-41d4-a716-446655440000`).
 - Parâmetros de busca devem ser passados via query string.
+- Endpoints de autenticação e ML são opcionais/bônus, conforme arquitetura do projeto.
 - **Paginação:** Todos os endpoints paginados validam `page >= 1` e `per_page` entre 1 e 100.
 - **Consistência:** Todos os endpoints paginados usam a chave `items` (não `results`) para a lista de resultados.
-- Endpoints de autenticação e ML são opcionais/bônus.
 - Para mais detalhes sobre a arquitetura e funcionamento, consulte o arquivo `docs/architecture.md`.
