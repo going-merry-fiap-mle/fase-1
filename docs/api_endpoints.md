@@ -303,37 +303,93 @@ Esta documentação descreve todos os endpoints REST disponíveis na API do proj
 
 ### Login
 - **Endpoint:** `POST /api/v1/auth/login`
-- **Descrição:** Autentica usuário e retorna token JWT.
-- **Request de exemplo:**
+- **Descrição:** Autentica usuário e retorna tokens JWT (access e refresh).
+- **Credenciais padrão:**
+  - Username: `admin`
+  - Password: `admin123`
+- **Request Body:**
 ```json
 {
   "username": "admin",
-  "password": "senha"
+  "password": "admin123"
 }
 ```
-- **Resposta de exemplo:**
+- **Resposta de sucesso (200):**
 ```json
 {
-  "access_token": "...",
-  "refresh_token": "..."
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "token_type": "bearer"
+}
+```
+- **Resposta de erro (401):**
+```json
+{
+  "error": "Invalid credentials",
+  "message": "Username or password is incorrect"
+}
+```
+- **Resposta de erro (400):**
+```json
+{
+  "error": "Invalid request data",
+  "message": "Validation error details"
 }
 ```
 
 ### Refresh Token
 - **Endpoint:** `POST /api/v1/auth/refresh`
-- **Descrição:** Renova o token JWT.
-- **Request de exemplo:**
+- **Descrição:** Renova o access token usando o refresh token.
+- **Request Body:**
 ```json
 {
-  "refresh_token": "..."
+  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
 }
 ```
-- **Resposta de exemplo:**
+- **Resposta de sucesso (200):**
 ```json
 {
-  "access_token": "..."
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "token_type": "bearer"
 }
 ```
+- **Resposta de erro (401):**
+```json
+{
+  "error": "Invalid refresh token",
+  "message": "Token is invalid or expired"
+}
+```
+
+### Endpoints Protegidos
+
+#### Autenticação JWT (qualquer usuário autenticado):
+- `GET /api/v1/scraping/status/{task_id}` - Consultar status do scraping
+
+#### Permissão de Admin (requer role admin):
+- `GET /api/v1/scraping` - Iniciar web scraping
+- `GET /api/v1/books` - Listar livros
+- `GET /api/v1/books/{book_id}` - Buscar livro por ID
+
+### Como usar o token
+
+Incluir o access token no header `Authorization` das requisições:
+
+```bash
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+```
+
+**Exemplo de requisição:**
+```bash
+curl -X GET http://localhost:5000/api/v1/books \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN_AQUI"
+```
+
+### Configuração de Tokens
+- **Access Token:** Expira em 30 minutos
+- **Refresh Token:** Expira em 7 dias
+- **Algoritmo:** HS256
 
 ---
 
