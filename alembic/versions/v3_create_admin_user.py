@@ -13,7 +13,10 @@ from datetime import datetime, timezone
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID
-from app.utils import logger
+from app.utils.logger import AppLogger
+
+# Setup logger
+logger = AppLogger(__name__)
 
 
 # revision identifiers, used by Alembic.
