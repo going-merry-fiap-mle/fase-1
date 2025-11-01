@@ -24,5 +24,4 @@ class ScrapingRepository(IScrapingRepository):
 
             session.bulk_save_objects(books_orm)
             session.flush()
-            session.commit()
             self.logger.info(f"Inserted {len(books)} books into the database")
