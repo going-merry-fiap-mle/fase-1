@@ -401,7 +401,7 @@ A seguir estão os endpoints expostos pelo blueprint `ml` (prefixo `/api/v1/ml`)
 - **Endpoint:** `POST /api/v1/ml/predictions`
 - **Descrição:** Cria uma nova predição ou executa o modelo de ML para gerar uma predição automaticamente. Este endpoint tem dois comportamentos distintos baseados nos parâmetros fornecidos.
 - **Disponibilidade:** Este endpoint está disponível em ambos os ambientes Docker (desenvolvimento e produção). Ambos os containers montam o volume `./models` e carregam os modelos ML na inicialização.
-- **Documentação completa:** Ver `docs/ml_implementation.md` para detalhes completos sobre treinamento, cache, e troubleshooting.
+- **Documentação completa:** Ver `docs/machine-learning.md` para detalhes completos sobre treinamento, cache, e troubleshooting.
 
 #### Modo 1: Executar ML em Tempo Real
 Endpoint executa o modelo ML e salva o resultado automaticamente no banco de dados.
@@ -522,7 +522,7 @@ Endpoint apenas salva uma predição que foi calculada externamente.
 - **Validação:** `confidence` deve estar entre 0.0 e 1.0
 - **Validação:** `model_version` é obrigatório quando `predicted_value` é fornecido
 - **Persistência:** Todas as predições (executadas ou salvas) são armazenadas na tabela `predictions`
-- **Documentação técnica:** Ver `docs/ml_implementation.md` para detalhes sobre arquitetura, treinamento e troubleshooting
+- **Documentação técnica:** Ver `docs/machine-learning.md` para detalhes sobre arquitetura, treinamento e troubleshooting
 
 ---
 
@@ -671,4 +671,4 @@ Retornado quando ocorre um erro inesperado no servidor.
 - Endpoints de autenticação e ML são opcionais/bônus, conforme arquitetura do projeto.
 - **Paginação:** Todos os endpoints paginados validam `page >= 1` e `per_page` entre 1 e 100.
 - **Consistência:** Todos os endpoints paginados usam a chave `items` (não `results`) para a lista de resultados.
-- Para mais detalhes sobre a arquitetura e funcionamento, consulte o arquivo `docs/architecture.md`.
+- Para mais detalhes sobre a arquitetura e funcionamento, consulte o arquivo `docs/architecture-overview.md`.

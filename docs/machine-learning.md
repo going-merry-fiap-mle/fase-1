@@ -473,8 +473,6 @@ docker-compose -f docker-compose.dev.yml restart backend-dev
 
 ### Executar testes ML
 - **Comando:** `poetry run pytest app/tests/api/test_ml_predictions.py -v`
-- **Total:** 15 testes
-- **Cobertura:** 100%
 
 ### Testes principais
 - Criação de predição com sucesso
