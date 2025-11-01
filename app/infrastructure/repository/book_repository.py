@@ -101,6 +101,18 @@ class BookRepository(IBookRepository):
 
             return book_db.to_domain()
 
+
+    def get_book_by_id(self, book_id : str) -> DomainBook | None:
+        with get_session() as session:
+            book_orm = session.get(Book, UUID(book_id))
+
+            if book_orm is None:
+                return None
+
+            domain_book = book_orm.to_domain()
+
+            return domain_book
+          
     def get_books_by_price(self, page: int = 1, per_page: int = 10, min_price: Decimal = Decimal('0'), max_price: Decimal = Decimal('Infinity')) -> tuple[list[DomainBook], int]:
         with get_session() as session:
             filters = [Book.price >= min_price]

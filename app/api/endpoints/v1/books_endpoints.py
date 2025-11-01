@@ -1,6 +1,7 @@
 from decimal import Decimal
 from uuid import UUID
 
+from app.controller.books.get_book_by_id_controller import GetBookByIdController
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
 
@@ -94,6 +95,7 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
     ---
     tags:
       - Livros
+      - Books
     security:
       - Bearer: []
     parameters:
@@ -127,8 +129,23 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
       400:
         description: UUID inválido
     """
-    UUID(book_id)
-    return jsonify({"id": book_id, "book": None}), 200
+
+    try:
+      UUID(book_id)
+
+    except ValueError:
+      return jsonify({"error": "Invalid value", "message": "badly formed hexadecimal UUID string"}), 400
+    
+    controller = GetBookByIdController()
+    result = controller.call_controller(book_id)
+    
+    
+    if result:
+      return jsonify(result.model_dump()), 200
+    
+    else:
+      return jsonify({"error": "Book not found", "message": "No book found with the provided ID"}), 404
+      
 
 
 @books_bp.route("/search", methods=["GET"])
