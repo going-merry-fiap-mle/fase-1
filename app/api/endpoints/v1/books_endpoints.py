@@ -10,17 +10,21 @@ from app.controller.books.get_book_controller import GetBookController
 from app.controller.books.search_books_controller import SearchBooksController
 from app.controller.books.top_rated_books_controller import TopRatedBooksController
 from app.schemas.pagination_schema import PaginationParams
+from app.core.auth import admin_required
 
 books_bp = Blueprint("books", __name__, url_prefix="/api/v1/books")
 
 
 @books_bp.route("", methods=["GET"])
+@admin_required
 def list_books() -> Response | tuple[Response, int]:
     """
     Listar todos os livros com paginação
     ---
     tags:
       - Livros
+    security:
+      - Bearer: []
     parameters:
       - name: page
         in: query
@@ -84,12 +88,15 @@ def list_books() -> Response | tuple[Response, int]:
 
 
 @books_bp.route("/<string:book_id>", methods=["GET"])
-def get_book(book_id : str) -> Response | tuple[Response, int]:
+@admin_required
+def get_book(book_id: str) -> Response | tuple[Response, int]:
     """
     Buscar livro por ID
     ---
     tags:
-      - Books
+      - Livros
+    security:
+      - Bearer: []
     parameters:
       - name: book_id
         in: path

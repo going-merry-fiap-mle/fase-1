@@ -89,5 +89,58 @@ curl -X POST http://localhost:5000/api/v1/ml/predictions \
 
 **Nota:** O treinamento é automático. Não é necessário executar comandos manuais.
 
+## Autenticação JWT
+
+A API utiliza autenticação JWT (JSON Web Token) para proteger rotas sensíveis.
+
+### Login
+**Endpoint:** `POST /api/v1/auth/login`
+
+**Credenciais padrão:**
+- **Username:** `admin`
+- **Password:** `admin123`
+
+**Exemplo de requisição:**
+```bash
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "admin123"}'
+```
+
+**Resposta:**
+```json
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "token_type": "bearer"
+}
+```
+
+### Refresh Token
+**Endpoint:** `POST /api/v1/auth/refresh`
+
+### Endpoints Protegidos
+
+#### Requer Token JWT (qualquer usuário autenticado):
+- `GET /api/v1/scraping/status/{task_id}` - Consultar status do scraping
+
+#### Requer Permissão de Admin:
+- `GET /api/v1/scraping` - Iniciar web scraping
+- `GET /api/v1/books` - Listar livros
+- `GET /api/v1/books/{book_id}` - Buscar livro por ID
+
+### Como usar o token
+
+Incluir o token no header `Authorization` das requisições:
+
+```bash
+curl -X GET http://localhost:5000/api/v1/scraping \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN_AQUI"
+```
+
+### Swagger UI
+
+Acesse `http://localhost:5000/apidocs/` para testar os endpoints via interface web. Use o botão "Authorize" para inserir o token JWT.
+
 ---
 Mais instruções e documentação das rotas da API serão adicionadas conforme o desenvolvimento avança.
