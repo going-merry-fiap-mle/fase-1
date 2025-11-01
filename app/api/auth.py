@@ -70,7 +70,7 @@ def refresh_token():
     """Refresh token endpoint
     ---
     tags:
-      - Authentication
+      - Autenticação
     parameters:
       - in: body
         name: body

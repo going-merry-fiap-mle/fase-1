@@ -12,9 +12,12 @@ services:
     env_file:
       - .env.dev
     volumes:
-      - ./app:/app/api
+      - ./app:/app/app
+      - ./alembic:/app/alembic
       - ./data:/app/data
       - ./logs:/app/logs
+      - ./models:/app/models
+      - ./ml_training:/app/ml_training
     command: sh ./start-backend-dev.sh
     stdin_open: true
     tty: true

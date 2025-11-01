@@ -21,7 +21,7 @@ logger = AppLogger(__name__)
 
 # revision identifiers, used by Alembic.
 revision: str = 'ea4adf35f20d'
-down_revision: Union[str, Sequence[str], None] = 'dfc9d0632cdc'
+down_revision: Union[str, Sequence[str], None] = 'abc740b20a1e'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

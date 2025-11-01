@@ -95,7 +95,6 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
     ---
     tags:
       - Livros
-      - Books
     security:
       - Bearer: []
     parameters:

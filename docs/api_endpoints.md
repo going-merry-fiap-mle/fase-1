@@ -395,9 +395,138 @@ curl -X GET http://localhost:5000/api/v1/books \
 
 ## 6. Endpoints para ML (Bônus)
 
-A seguir estão os endpoints expostos pelo blueprint `ml` (prefixo `/api/v1/ml`). Eles permitem listar features, obter o manifesto das features e exportar dataset para treinamento (em JSON ou CSV).
+A seguir estão os endpoints expostos pelo blueprint `ml` (prefixo `/api/v1/ml`). Eles permitem criar/executar predições, listar features, obter o manifesto das features e exportar dataset para treinamento (em JSON ou CSV).
 
-### 1) Listar features (paginado)
+### Criar ou executar predições de Machine Learning
+- **Endpoint:** `POST /api/v1/ml/predictions`
+- **Descrição:** Cria uma nova predição ou executa o modelo de ML para gerar uma predição automaticamente. Este endpoint tem dois comportamentos distintos baseados nos parâmetros fornecidos.
+- **Disponibilidade:** Este endpoint está disponível em ambos os ambientes Docker (desenvolvimento e produção). Ambos os containers montam o volume `./models` e carregam os modelos ML na inicialização.
+- **Documentação completa:** Ver `docs/ml_implementation.md` para detalhes completos sobre treinamento, cache, e troubleshooting.
+
+#### Modo 1: Executar ML em Tempo Real
+Endpoint executa o modelo ML e salva o resultado automaticamente no banco de dados.
+
+- **Request:**
+```json
+{
+  "book_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "prediction_type": "rating"
+}
+```
+
+- **Query Parameters:**
+  - `use_cache` (opcional, boolean, default: true): Se deve usar cache de predições
+
+- **Response (200 OK):**
+```json
+{
+  "prediction": {
+    "book_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "book_title": "The Great Gatsby",
+    "predicted_value": "1",
+    "predicted_label": "High Rating (>=4)",
+    "confidence": 0.85,
+    "features_used": {
+      "price": 29.99,
+      "category": "Fiction",
+      "availability": "In stock",
+      "category_encoded": 0,
+      "availability_encoded": 1
+    },
+    "model_version": "v1.0.0",
+    "from_cache": false
+  },
+  "saved_prediction_id": "uuid-da-predicao-salva"
+}
+```
+
+#### Modo 2: Salvar Predição Pré-calculada
+Endpoint apenas salva uma predição que foi calculada externamente.
+
+- **Request:**
+```json
+{
+  "book_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "prediction_type": "rating",
+  "predicted_value": "5",
+  "confidence": 0.95,
+  "model_version": "v1.0.0",
+  "metadata": {
+    "source": "external_model",
+    "algorithm": "custom"
+  }
+}
+```
+
+- **Response (201 Created):**
+```json
+{
+  "id": "prediction-uuid",
+  "book_id": "book-uuid",
+  "prediction_type": "rating",
+  "predicted_value": "5",
+  "confidence": 0.95,
+  "model_version": "v1.0.0",
+  "metadata": {
+    "source": "external_model",
+    "algorithm": "custom"
+  },
+  "created_at": "2025-10-30T12:00:00Z"
+}
+```
+
+#### Tipos de Predição Válidos
+- `rating` - Predição de rating alto/baixo (>=4 ou <4)
+- `category` - Predição de categoria
+- `price` - Predição de preço
+- `recommendation` - Predição de recomendação
+
+#### Erros Possíveis
+
+**400 Bad Request - Validação:**
+```json
+{
+  "error": "Invalid parameters",
+  "details": [
+    {
+      "field": "book_id",
+      "message": "Input should be a valid string",
+      "type": "string_type"
+    }
+  ]
+}
+```
+
+**404 Not Found - Livro inexistente:**
+```json
+{
+  "error": "Book not found",
+  "message": "Book with id xxx not found"
+}
+```
+
+**503 Service Unavailable - Modelo não carregado:**
+```json
+{
+  "error": "Model not available",
+  "message": "Model for 'rating' is not loaded. Please train the model first.",
+  "hint": "Run: python ml_training/train_model.py"
+}
+```
+
+#### Observações
+- **Ambientes:** Endpoint disponível em ambos os containers Docker (fiap-backend-dev e fiap-backend-prod)
+- **Volume compartilhado:** Ambos os containers montam `./models:/app/models` do host, compartilhando modelos treinados
+- **Treinamento automático:** Modelo é treinado automaticamente na primeira inicialização se não existir
+- **Cache:** Predições são cacheadas automaticamente para melhor performance
+- **Validação:** `confidence` deve estar entre 0.0 e 1.0
+- **Validação:** `model_version` é obrigatório quando `predicted_value` é fornecido
+- **Persistência:** Todas as predições (executadas ou salvas) são armazenadas na tabela `predictions`
+- **Documentação técnica:** Ver `docs/ml_implementation.md` para detalhes sobre arquitetura, treinamento e troubleshooting
+
+---
+
+### Listar features (paginado)
 - **Endpoint:** `GET /api/v1/ml/features`
 - **Descrição:** Retorna uma resposta paginada com os registros transformados em features prontos para uso em modelos de ML.
 - **Parâmetros (query):**
@@ -426,16 +555,15 @@ A seguir estão os endpoints expostos pelo blueprint `ml` (prefixo `/api/v1/ml`)
       "title": "A Light in the Attic"
     }
   ],
-  "pagination": {
-    "page": 1,
-    "per_page": 10,
-    "total_items": 100,
-    "total_pages": 10
-  }
+  "total": 100,
+  "page": 1,
+  "per_page": 10,
+  "total_pages": 10,
+  "feature_version": "v1"
 }
 ```
 
-### 2) Manifesto das features
+### Manifesto das features
 - **Endpoint:** `GET /api/v1/ml/manifest`
 - **Descrição:** Retorna o manifesto das features, usado para entender os nomes, tipos e se campos são opcionais.
 - **Formato esperado de retorno (exatamente como gerado por `MLService.get_feature_manifest()`):**
@@ -455,7 +583,7 @@ A seguir estão os endpoints expostos pelo blueprint `ml` (prefixo `/api/v1/ml`)
 ```
 - **Observação:** o manifesto usa a chave `dtype` (em vez de `type`) e inclui uma breve `description` para cada feature. Este manifesto é usado internamente para gerar o cabeçalho CSV quando o endpoint `/api/v1/ml/training-data?format=csv` é solicitado.
 
-### 3) Dataset para treinamento (JSON ou CSV)
+### Dataset para treinamento (JSON ou CSV)
 - **Endpoint:** `GET /api/v1/ml/training-data`
 - **Descrição:** Retorna um dataset pronto para treinar modelos. Pode retornar JSON ou CSV. Permite amostragem via `sample` e controle de semente via `seed`.
 - **Parâmetros (query):**
@@ -469,7 +597,20 @@ A seguir estão os endpoints expostos pelo blueprint `ml` (prefixo `/api/v1/ml`)
 - **Resposta de exemplo (JSON):**
 ```json
 {
-  "predictions": [0, 1]
+  "rows": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "price_num": 51.77,
+      "rating": 3,
+      "availability_flag": 1,
+      "category": "Poetry",
+      "image_present": 1,
+      "title": "A Light in the Attic"
+    }
+  ],
+  "rows_count": 1,
+  "total": 100,
+  "format": "json"
 }
 ```
 

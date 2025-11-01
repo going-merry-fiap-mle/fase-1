@@ -61,13 +61,11 @@ COPY app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini ./
 
-RUN alembic upgrade head
-
 COPY start-backend-prod.sh ./
 
 RUN sed -i 's/\r$//' /app/start-backend-prod.sh && \
     chmod +x /app/start-backend-prod.sh && \
-    mkdir -p /app/data /app/logs
+    mkdir -p /app/data /app/logs /app/models
 
 RUN useradd -m -u 1000 apiuser && \
     chown -R apiuser:apiuser /app

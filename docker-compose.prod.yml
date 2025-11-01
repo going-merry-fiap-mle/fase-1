@@ -23,6 +23,8 @@ services:
     volumes:
       - ./data:/app/data:rw
       - ./logs:/app/logs:rw
+      - ./models:/app/models:rw
+      - ./ml_training:/app/ml_training:ro
     command: sh ./start-backend-prod.sh
     restart: unless-stopped
     stop_grace_period: 30s

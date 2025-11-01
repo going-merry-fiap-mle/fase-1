@@ -64,6 +64,9 @@ def run_migrations_online() -> None:
     """
 
     database_url = os.getenv('DATABASE_URL')
+    if database_url and database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
     configuration = config.get_section(config.config_ini_section)
     if database_url:
         configuration['sqlalchemy.url'] = database_url

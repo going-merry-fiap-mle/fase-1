@@ -182,6 +182,11 @@ def test_books_id_endpoint_invalid_uuid(client, auth_headers):
     response = client.get("/api/v1/books/invalid-uuid", headers=auth_headers)
     assert response.status_code == 400
 
+    data = response.get_json()
+    assert 'error' in data
+    assert data['error'] == 'Invalid value'
+    assert 'message' in data
+
 
 def test_books_id_endpoint_integer_not_accepted(client, auth_headers):
     response = client.get("/api/v1/books/123", headers=auth_headers)

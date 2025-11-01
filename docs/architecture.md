@@ -58,31 +58,77 @@ Este projeto segue princípios da Arquitetura Hexagonal (Ports & Adapters), prom
       - categories_endpoints.py
       - health_endpoints.py
       - scraper_endpoints.py
+      - stats_endpoints.py
+      - ml_endpoints.py
     - register_endpoints.py
   - controller/
+    - books/ (get_book_controller.py, create_book_controller.py, etc.)
+    - categories/ (get_categories_controller.py)
+    - health/ (health_controller.py)
+    - ml/ (create_prediction_controller.py, execute_prediction_controller.py)
     - scraping_controller.py
   - domain/
-    - models.py (placeholder)
-    - repositories.py (placeholder)
-    - services.py (placeholder)
+    - models/
+      - book.py
+      - category.py
+      - prediction_domain_model.py
   - infrastructure/
     - webdriver_infrastructure.py
-    - database.py (stub)
-    - adapters/ (.keep)
+    - database.py
+    - session_manager.py
+    - adapters/
+      - book_adapter.py
+      - category_adapter.py
+      - prediction_adapter.py
+    - repository/
+      - book_repository.py
+      - category_repository.py
+      - prediction_repository.py
+    - models/ (SQLAlchemy ORM)
+      - book.py
+      - category.py
+      - user.py
+      - prediction.py
+  - ml/
+    - model_loader.py (Singleton para carregar modelos)
+    - __init__.py
+  - port/
+    - book_port.py (IBookRepository)
+    - category_port.py (ICategoryRepository)
+    - prediction_port.py (IPredictionRepository)
   - schemas/
     - book_schema.py
-    - category_schema.py (vazio no momento)
+    - category_schema.py
     - scraping_schema.py
+    - ml_schema.py (PredictionBase, MLPredictionResponse, MLExecutionResponse)
+    - pagination_schema.py
   - services/
+    - book_service.py
+    - category_service.py
     - scraper_service.py
+    - ml_model_service.py
+    - prediction_service.py
   - usecases/
+    - books/ (get_book_use_case.py, create_book_use_case.py, etc.)
+    - categories/ (get_categories_use_case.py)
+    - ml/ (create_prediction_use_case.py, execute_prediction_use_case.py)
     - scraping_use_case.py
   - utils/
     - environment_loader.py
     - logger.py
+    - task_manager.py
 - docs/
   - api_endpoints.md
   - architecture.md (este documento)
+  - database_schema.md
+  - hexagonal.md
+  - ml_implementation.md
+- ml_training/
+  - train_model.py (script de treinamento)
+- models/
+  - rating_classifier_v1.pkl (modelo treinado)
+  - encoders_v1.pkl (encoders)
+  - metadata_v1.pkl (metadata)
 - tests e unittest
 
 ## Fluxo de Requisição (ex.: Web Scraping)
@@ -96,20 +142,51 @@ Este projeto segue princípios da Arquitetura Hexagonal (Ports & Adapters), prom
 4. ScraperService navega nas páginas, extrai e transforma os dados em modelos Pydantic (ScrapingBase).
 5. Use case retorna a lista de ScrapingBase; o endpoint serializa com model_dump() e responde via jsonify.
 
-Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma “porta” para navegação/extração; a implementação concreta é o adapter Selenium na infraestrutura. Trocar Selenium ou a forma de captura exigiria apenas substituir o adapter, mantendo o contrato.
+Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma "porta" para navegação/extração; a implementação concreta é o adapter Selenium na infraestrutura. Trocar Selenium ou a forma de captura exigiria apenas substituir o adapter, mantendo o contrato.
+
+## Fluxo de Requisição (ex.: Predição ML)
+
+1. Cliente faz POST /api/v1/ml/predictions com `{"book_id": "uuid", "prediction_type": "rating"}` (app/api/endpoints/v1/ml_endpoints.py).
+2. Endpoint valida request com Pydantic (PredictionBase) e instancia ExecutePredictionController.
+3. ExecutePredictionController compõe dependências:
+   - MLModelService (executa predição usando modelo carregado)
+   - PredictionService (persiste resultado via IPredictionRepository)
+   - ExecutePredictionUseCase (orquestra o fluxo completo)
+4. Use case executa:
+   - MLModelService.predict(): busca livro no banco, prepara features, executa modelo ML via MLModelLoader (Singleton)
+   - PredictionService.create_prediction(): salva resultado via PredictionAdapter → PredictionRepository → PostgreSQL
+5. Use case retorna (ml_result, saved_prediction).
+6. Controller transforma em MLExecutionResponse com detalhes da predição (book_title, confidence, features_used, from_cache).
+7. Endpoint serializa com model_dump() e responde via jsonify com status 200.
+
+**Arquitetura Hexagonal em Ação:**
+- **Port:** IPredictionRepository (Protocol) define contrato de persistência
+- **Adapter:** PredictionAdapter implementa o Protocol e delega para PredictionRepository
+- **Domain:** Prediction (modelo de domínio puro, sem SQLAlchemy)
+- **Infrastructure:** Prediction (modelo SQLAlchemy) com métodos to_domain()/from_domain()
+- **Service:** MLModelService encapsula lógica de ML, PredictionService usa a Port
+- **Singleton:** MLModelLoader carrega modelos uma única vez e mantém cache de predições
 
 ## Ports & Adapters (mapeamento prático)
 
-- Portas (contratos/intenções)
-  - Contratos de repositório e serviços de domínio em app/domain (a serem detalhados conforme a evolução).
-  - Contratos de dados com Pydantic (app/schemas).
+- **Portas (contratos/intenções)**
+  - `IBookRepository` (Protocol): contrato para operações com livros
+  - `ICategoryRepository` (Protocol): contrato para operações com categorias
+  - `IPredictionRepository` (Protocol): contrato para operações com predições
+  - Contratos de dados com Pydantic (app/schemas): BookBase, CategoryBase, PredictionBase, MLPredictionResponse
 
-- Adapters (implementações técnicas)
-  - WebDriverInfrastructure: integração com navegador via Selenium/GeckoDriverManager, headless fora de dev.
-  - Futuro: implementações de persistência em database.py ou pasta adapters/ (por exemplo, banco relacional, NoSQL, CSV, etc.).
+- **Adapters (implementações técnicas)**
+  - `BookAdapter`: implementa IBookRepository e delega para BookRepository
+  - `CategoryAdapter`: implementa ICategoryRepository e delega para CategoryRepository
+  - `PredictionAdapter`: implementa IPredictionRepository e delega para PredictionRepository
+  - `WebDriverInfrastructure`: integração com navegador via Selenium/GeckoDriverManager, headless fora de dev
+  - `MLModelLoader` (Singleton): carrega modelos ML via joblib e mantém cache em memória
 
-- Orquestração
-  - Controllers e UseCases compõem e consomem portas; a camada de Interface apenas inicia o fluxo e serializa resultados.
+- **Orquestração**
+  - Controllers compõem dependências (Adapters, Services, UseCases)
+  - UseCases orquestram Services e coordenam fluxo de dados
+  - Services contêm lógica de negócio e usam Ports (abstrações)
+  - Camada de Interface (API) apenas valida, instancia Controller e serializa resultados
 
 ## Decisões e Convenções
 
@@ -164,6 +241,10 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma �
 - selenium, webdriver-manager (extração via navegador)
 - pydantic (modelagem/validação)
 - python-dotenv (variáveis de ambiente)
+- SQLAlchemy (ORM para PostgreSQL)
+- alembic (migrations de banco de dados)
+- scikit-learn, joblib, numpy (Machine Learning)
+- psycopg2-binary (driver PostgreSQL)
 
 ## Resumo
 
