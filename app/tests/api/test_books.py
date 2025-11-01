@@ -191,7 +191,7 @@ def test_books_id_endpoint_invalid_uuid(client):
 
     data = response.get_json()
     assert 'error' in data
-    assert data['error'] == 'Invalid parameters'
+    assert data['error'] == 'Invalid value'
     assert 'message' in data
 
 
