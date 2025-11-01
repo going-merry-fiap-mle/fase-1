@@ -167,10 +167,11 @@ def test_books_endpoint_invalid_per_page_negative(client, auth_headers):
 def test_books_id_endpoint(client, auth_headers):
     valid_uuid = "550e8400-e29b-41d4-a716-446655440000"
     
-    with patch(
-        "app.controller.books.get_book_controller.GetBookController.call_controller",
-        return_value=None
-    ):
+    with patch("app.controller.books.get_book_controller.GetBookController") as mock_controller_class:
+        mock_controller = MagicMock()
+        mock_controller.call_controller.return_value = {"id": valid_uuid, "book": None}
+        mock_controller_class.return_value = mock_controller
+        
         response = client.get(f"/api/v1/books/{valid_uuid}", headers=auth_headers)
         assert (
             response.status_code == 200
