@@ -2,7 +2,7 @@
 
 Esta documentação descreve a implementação do pipeline de Machine Learning para predição de ratings de livros.
 
-**Importante:** Este projeto utiliza Docker para todos os processos, incluindo treinamento de modelos ML. O endpoint de predições ML está disponível em ambos os ambientes (desenvolvimento e produção), pois ambos os containers têm o volume `./models:/app/models` montado e o endpoint ML registrado.
+**Importante:** Este projeto utiliza Docker para todos os processos, incluindo treinamento de modelos ML. O endpoint de predições ML está disponível no ambiente de desenvolvimento (container `fiap-backend-dev`).
 
 **Treinamento Automático:** O modelo é treinado automaticamente na primeira inicialização do container se não existir. Não é necessário executar comandos manuais de treinamento.
 
@@ -48,7 +48,7 @@ poetry run python -c "import sklearn; import joblib; import numpy; print('OK')"
 - Docker e docker-compose instalados
 - Container backend rodando (`docker-compose -f docker-compose.dev.yml up -d`)
 - PostgreSQL com dados de livros (tabelas `books` e `categories` populadas)
-- Variável `DATABASE_URL` configurada no `.env.dev` ou `.env.prod`
+- Variável `DATABASE_URL` configurada no arquivo de ambiente de desenvolvimento (`.env.dev`)
 
 ### Treinamento Automático
 
@@ -77,14 +77,9 @@ O modelo é treinado **automaticamente** na primeira inicialização do containe
 
 Para retreinar o modelo manualmente (ex: após adicionar mais dados):
 
-**Desenvolvimento:**
+**Treinamento manual (desenvolvimento):**
 ```bash
 docker exec fiap-backend-dev poetry run python ml_training/train_model.py
-```
-
-**Produção:**
-```bash
-docker exec fiap-backend-prod poetry run python ml_training/train_model.py
 ```
 
 Após retreinamento manual, reinicie o container para recarregar o modelo:
@@ -296,18 +291,11 @@ A tabela `predictions` é criada automaticamente via Alembic migrations.
 docker exec fiap-backend-dev poetry run alembic upgrade head
 ```
 
-**Produção:**
-```bash
-poetry run alembic upgrade head
-```
-
 A migration `add_predictions_ml` cria:
 - Tabela `predictions` com constraints e indexes
 - Foreign key para `books`
 - Check constraint para `confidence` (0.0-1.0)
 - Indexes para `book_id`, `prediction_type`, `created_at`
-
-**Importante:** O Dockerfile.backend.prod já executa `alembic upgrade head` automaticamente na inicialização.
 
 ---
 
@@ -424,31 +412,11 @@ curl -X POST http://localhost:5000/api/v1/ml/predictions \
   -H "Content-Type: application/json" \
   -d '{"book_id": "uuid-do-livro", "prediction_type": "rating"}'
 
-# 4. Verificar modelos gerados (compartilhado entre dev e prod)
+# 4. Verificar modelos gerados (compartilhado via volume)
 ls -lh models/
 
 # 5. Monitorar logs em tempo real
 docker logs fiap-backend-dev -f
-```
-
-#### Produção (Prod)
-
-```bash
-# 1. Iniciar ambiente de produção
-docker-compose -f docker-compose.prod.yml up -d
-
-# Aguardar inicialização e treinamento automático (se necessário)
-
-# 2. Verificar health check (validação automática)
-curl http://localhost:5000/api/v1/health
-
-# 3. Testar endpoint de predição
-curl -X POST http://localhost:5000/api/v1/ml/predictions \
-  -H "Content-Type: application/json" \
-  -d '{"book_id": "uuid-do-livro", "prediction_type": "rating"}'
-
-# 4. Monitorar logs estruturados
-docker logs fiap-backend-prod -f --tail 100
 ```
 
 #### Retreinamento Manual (Opcional)
@@ -465,7 +433,6 @@ docker-compose -f docker-compose.dev.yml restart backend-dev
 
 **Volumes configurados:**
 - **Dev:** `./models:/app/models` - Modelos compartilhados + hot-reload
-- **Prod:** `./models:/app/models:rw` - Modelos compartilhados + read-only training scripts
 
 ---
 
@@ -576,13 +543,10 @@ def session_scope(self) -> Generator[Session, None, None]:
 ## Observações
 
 - **Docker-first:** Projeto utiliza containers para todos os processos (consistência e reprodutibilidade)
-- **Ambientes:** Endpoint ML disponível em **DEV** (`fiap-backend-dev`) e **PROD** (`fiap-backend-prod`)
-- **Volumes compartilhados:** Modelos persistem via volume `./models:/app/models` em ambos os containers
-- **Sincronização:** Treinar modelo em um container o disponibiliza automaticamente para o outro (mesmo volume no host)
+- **Ambiente:** Endpoint ML disponível no container de desenvolvimento (`fiap-backend-dev`)
+- **Volumes compartilhados:** Modelos persistem via volume `./models:/app/models`
 - **Modelos não versionados:** Arquivos em `models/` não são commitados (`.gitignore`)
 - **Requisitos:** Mínimo ~100 livros no banco para treinar modelo com qualidade
 - **Cache:** Limpa automaticamente ao reiniciar container
-- **Autoload:** Modelo carrega automaticamente na inicialização do Flask em ambos os ambientes
-- **Features:** Engineering totalmente automatizada (encoding, transformações)
+- **Autoload:** Modelo carrega automaticamente na inicialização do Flask
 - **Reutilização:** Container backend serve tanto API quanto treinamento ML
-- **Portabilidade:** Treinar em DEV e usar em PROD sem retraining (compartilhamento de volume)
