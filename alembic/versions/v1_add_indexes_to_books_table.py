@@ -43,6 +43,8 @@ def upgrade() -> None:
             "categories",
             sa.Column("id", sa.UUID(), nullable=False),
             sa.Column("name", sa.String(), nullable=False),
+            sa.Column("created_at", sa.DateTime(), nullable=False),
+            sa.Column("updated_at", sa.DateTime(), nullable=False),
             sa.PrimaryKeyConstraint("id"),
             sa.UniqueConstraint("name"),
         )
