@@ -4,9 +4,9 @@ from http import HTTPStatus
 from flask import Blueprint, Response, jsonify
 
 from app.controller.scraping_controller import ScrapingController
+from app.core.auth import admin_required
 from app.utils.logger import AppLogger
 from app.utils.task_manager import TaskStatus, default_task_manager
-from app.core.auth import admin_required, jwt_required
 
 scraper_bp = Blueprint("scraping", __name__, url_prefix="/api/v1/scraping")
 
@@ -26,7 +26,7 @@ def _scraping_worker(task_id: str) -> None:
         default_task_manager.set_status(task_id, TaskStatus.ERROR, str(exc))
 
 
-@scraper_bp.route("", methods=["GET"])
+@scraper_bp.route("/trigger", methods=["GET"])
 @admin_required
 def scraping() -> tuple[Response, int]:
     """
@@ -53,7 +53,7 @@ def scraping() -> tuple[Response, int]:
 
 
 @scraper_bp.route("/status/<task_id>", methods=["GET"])
-@jwt_required
+@admin_required
 def scraping_status(task_id: str) -> tuple[Response, int]:
     """
     Consultar o status do scraping

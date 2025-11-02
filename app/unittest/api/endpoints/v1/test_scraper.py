@@ -1,13 +1,14 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
 from unittest.mock import patch as patch_thread
 
 from flask import Flask
 
 from app.api.endpoints.v1.scraper_endpoints import scraper_bp
-from app.schemas.scraping_schema import ScrapingBase
-from app.infrastructure.models.enums.admin_enum import UserRole
 from app.core.security import create_access_token
+from app.infrastructure.models.enums.admin_enum import UserRole
+from app.schemas.scraping_schema import ScrapingBase
 
 
 class TestScraperEndpoint(unittest.TestCase):
@@ -18,13 +19,13 @@ class TestScraperEndpoint(unittest.TestCase):
         return app
 
     @patch("app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller")
-    @patch('app.core.auth.get_current_user')
+    @patch("app.core.auth.get_current_user")
     def test_scraping_route_returns_serialized_books_json_200(
         self, mock_get_user, mock_call_controller
     ):
         # Mock admin user
         mock_user = MagicMock()
-        mock_user.username = 'admin'
+        mock_user.username = "admin"
         mock_user.role = UserRole.admin
         mock_get_user.return_value = mock_user
         books = [
@@ -64,7 +65,7 @@ class TestScraperEndpoint(unittest.TestCase):
             with app.test_client() as client:
                 token = create_access_token(data={"sub": "admin"})
                 headers = {"Authorization": f"Bearer {token}"}
-                resp = client.get("/api/v1/scraping", headers=headers)
+                resp = client.get("/api/v1/scraping/trigger", headers=headers)
                 self.assertEqual(resp.status_code, 202)
                 mock_call_controller.assert_called_once()
 
@@ -72,11 +73,13 @@ class TestScraperEndpoint(unittest.TestCase):
         "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
         return_value=[],
     )
-    @patch('app.core.auth.get_current_user')
-    def test_scraping_route_returns_empty_json_array_200(self, mock_get_user, _mock_call_controller):
+    @patch("app.core.auth.get_current_user")
+    def test_scraping_route_returns_empty_json_array_200(
+        self, mock_get_user, _mock_call_controller
+    ):
         # Mock admin user
         mock_user = MagicMock()
-        mock_user.username = 'admin'
+        mock_user.username = "admin"
         mock_user.role = UserRole.admin
         mock_get_user.return_value = mock_user
         app = self.create_app()
@@ -96,7 +99,7 @@ class TestScraperEndpoint(unittest.TestCase):
             with app.test_client() as client:
                 token = create_access_token(data={"sub": "admin"})
                 headers = {"Authorization": f"Bearer {token}"}
-                resp = client.get("/api/v1/scraping", headers=headers)
+                resp = client.get("/api/v1/scraping/trigger", headers=headers)
                 self.assertEqual(resp.status_code, 202)
                 _mock_call_controller.assert_called_once()
 
@@ -104,14 +107,16 @@ class TestScraperEndpoint(unittest.TestCase):
         "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
         return_value=[],
     )
-    @patch('app.core.auth.get_current_user')
-    def test_scraping_route_calls_controller_once(self, mock_get_user, mock_call_controller):
+    @patch("app.core.auth.get_current_user")
+    def test_scraping_route_calls_controller_once(
+        self, mock_get_user, mock_call_controller
+    ):
         # Mock admin user
         mock_user = MagicMock()
-        mock_user.username = 'admin'
+        mock_user.username = "admin"
         mock_user.role = UserRole.admin
         mock_get_user.return_value = mock_user
-        
+
         app = self.create_app()
 
         class DummyThread:
@@ -129,7 +134,7 @@ class TestScraperEndpoint(unittest.TestCase):
             with app.test_client() as client:
                 token = create_access_token(data={"sub": "admin"})
                 headers = {"Authorization": f"Bearer {token}"}
-                resp = client.get("/api/v1/scraping", headers=headers)
+                resp = client.get("/api/v1/scraping/trigger", headers=headers)
                 self.assertEqual(resp.status_code, 202)
                 mock_call_controller.assert_called_once()
 
@@ -137,13 +142,13 @@ class TestScraperEndpoint(unittest.TestCase):
         "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
         side_effect=Exception("boom"),
     )
-    @patch('app.core.auth.get_current_user')
+    @patch("app.core.auth.get_current_user")
     def test_scraping_route_returns_500_on_controller_exception(
         self, mock_get_user, _mock_call_controller
     ):
         # Mock admin user
         mock_user = MagicMock()
-        mock_user.username = 'admin'
+        mock_user.username = "admin"
         mock_user.role = UserRole.admin
         mock_get_user.return_value = mock_user
         app = self.create_app(testing=False)
@@ -166,31 +171,31 @@ class TestScraperEndpoint(unittest.TestCase):
             with app.test_client() as client:
                 token = create_access_token(data={"sub": "admin"})
                 headers = {"Authorization": f"Bearer {token}"}
-                resp = client.get("/api/v1/scraping", headers=headers)
+                resp = client.get("/api/v1/scraping/trigger", headers=headers)
                 self.assertEqual(resp.status_code, 202)
 
     @patch(
         "app.api.endpoints.v1.scraper_endpoints.ScrapingController.call_controller",
         return_value=None,
     )
-    @patch('app.core.auth.get_current_user')
+    @patch("app.core.auth.get_current_user")
     def test_scraping_route_returns_500_on_invalid_controller_result(
         self, mock_get_user, _mock_call_controller
     ):
         # Mock admin user
         mock_user = MagicMock()
-        mock_user.username = 'admin'
+        mock_user.username = "admin"
         mock_user.role = UserRole.admin
         mock_get_user.return_value = mock_user
         app = self.create_app(testing=False)
         with app.test_client() as client:
             token = create_access_token(data={"sub": "admin"})
             headers = {"Authorization": f"Bearer {token}"}
-            resp = client.get("/api/v1/scraping", headers=headers)
+            resp = client.get("/api/v1/scraping/trigger", headers=headers)
             self.assertEqual(resp.status_code, 202)
 
     def test_scraping_route_disallows_post_405(self):
         app = self.create_app()
         with app.test_client() as client:
-            resp = client.post("/api/v1/scraping", json={})
+            resp = client.post("/api/v1/scraping/trigger", json={})
             self.assertEqual(resp.status_code, 405)

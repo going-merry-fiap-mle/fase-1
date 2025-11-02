@@ -4,10 +4,10 @@ from flask.wrappers import Response
 from app.controller.categories.get_categories_controller import GetCategoriesController
 from app.schemas.pagination_schema import PaginationParams
 
-categories_bp = Blueprint('categories', __name__, url_prefix='/api/v1/categories')
+categories_bp = Blueprint("categories", __name__, url_prefix="/api/v1/categories")
 
 
-@categories_bp.route('', methods=['GET'])
+@categories_bp.route("", methods=["GET"])
 def list_categories() -> Response | tuple[Response, int]:
     """
     Listar todas as categorias com paginação
@@ -72,11 +72,13 @@ def list_categories() -> Response | tuple[Response, int]:
                 type: object
     """
     pagination = PaginationParams(
-        page=request.args.get('page', 1, type=int),
-        per_page=request.args.get('per_page', 10, type=int)
+        page=request.args.get("page", 1, type=int),
+        per_page=request.args.get("per_page", 10, type=int),
     )
 
     controller = GetCategoriesController()
-    result = controller.call_controller(page=pagination.page, per_page=pagination.per_page)
+    result = controller.call_controller(
+        page=pagination.page, per_page=pagination.per_page
+    )
 
     return jsonify(result.model_dump())
