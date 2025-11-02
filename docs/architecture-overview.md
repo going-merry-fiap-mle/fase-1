@@ -267,6 +267,6 @@ A arquitetura atual implementa completamente os princípios de Clean Architectur
 - **Adapters implementados**: BookAdapter, CategoryAdapter, PredictionAdapter delegando para repositories concretos
 - **Inversão de dependências**: Services dependem de abstrações (Ports), não de implementações concretas
 - **Testabilidade**: 180 testes unitários cobrindo todas as camadas
-- **Production-ready**: Todos os endpoints obrigatórios, opcionais e bônus implementados com autenticação JWT, Machine Learning e pipeline completo de dados
+- **Completo e robusto**: Todos os endpoints obrigatórios, opcionais e bônus implementados com autenticação JWT, Machine Learning e pipeline completo de dados
 
 O uso de Ports & Adapters permite trocar componentes técnicos (ex.: driver de scraping, banco de dados, framework ML) sem impactar o núcleo do sistema, assegurando testabilidade, manutenibilidade e evolução controlada.

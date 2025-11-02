@@ -19,45 +19,45 @@ Este documento contém os diagramas visuais da arquitetura completa do sistema, 
 
 ```mermaid
 graph TB
-    subgraph "Camada Externa"
+    subgraph "CAMADA EXTERNA"
         API[API REST<br/>Flask/Flasgger]
         CLI[Scripts CLI<br/>Scraping]
     end
 
-    subgraph "Camada de Controladores"
+    subgraph "CONTROLADORES"
         BookCtrl[Controladores de Livros]
         MLCtrl[Controladores ML]
         AuthCtrl[Controladores Auth]
         ScrapingCtrl[Controlador Scraping]
     end
 
-    subgraph "Camada de Casos de Uso - Lógica de Negócio"
+    subgraph "CASOS DE USO"
         BookUC[Casos de Uso de Livros]
         MLUC[Casos de Uso ML<br/>Criar/Executar Predições]
         ScrapingUC[Caso de Uso Scraping]
     end
 
-    subgraph "Camada de Serviços - Serviços de Domínio"
+    subgraph "SERVIÇOS DE DOMÍNIO"
         MLService[Serviço ML<br/>Engenharia de Features]
         MLModelService[Serviço de Modelo ML<br/>Treinamento/Predição]
         ScrapingService[Serviço de Scraping]
         PredictionService[Serviço de Predição]
     end
 
-    subgraph "Portas - Interfaces"
+    subgraph "PORTAS"
         BookPort[Porta Repositório Livros]
         PredictionPort[Porta Predição]
         CategoryPort[Porta Categoria]
     end
 
-    subgraph "Adaptadores - Infraestrutura"
+    subgraph "ADAPTADORES"
         BookRepo[Repositório de Livros]
         PredictionRepo[Repositório de Predições]
         BookAdapter[Adaptador de Livros]
         PredictionAdapter[Adaptador de Predições]
     end
 
-    subgraph "Infraestrutura"
+    subgraph "INFRAESTRUTURA"
         DB[(PostgreSQL<br/>Database)]
         ModelFiles[Arquivos de Modelo<br/>.pkl]
         WebDriver[Selenium<br/>WebDriver]
@@ -94,13 +94,13 @@ graph TB
 ```
 
 **Camadas da Arquitetura:**
-- **Camada Externa:** Pontos de entrada (REST API, CLI)
-- **Controladores:** Recebem requisições e orquestram casos de uso
-- **Casos de Uso:** Lógica de negócio pura (independente de framework)
-- **Serviços:** Serviços de domínio especializados (ML, Scraping)
-- **Portas:** Interfaces que definem contratos
-- **Adaptadores:** Implementações concretas das portas
-- **Infraestrutura:** Persistência e recursos externos
+- **CAMADA EXTERNA:** Pontos de entrada (REST API, CLI)
+- **CONTROLADORES:** Recebem requisições e orquestram casos de uso
+- **CASOS DE USO:** Lógica de negócio pura (independente de framework)
+- **SERVIÇOS DE DOMÍNIO:** Serviços especializados (ML, Scraping, Predição)
+- **PORTAS:** Interfaces que definem contratos
+- **ADAPTADORES:** Implementações concretas das portas
+- **INFRAESTRUTURA:** Persistência e recursos externos
 
 ---
 
@@ -108,35 +108,35 @@ graph TB
 
 ```mermaid
 graph LR
-    subgraph "INGESTÃO"
+    subgraph "1. INGESTÃO"
         WebSite[books.toscrape.com<br/>Website]
         Selenium[Selenium WebDriver<br/>Navegador Automatizado]
         Scraper[Serviço de Scraping<br/>Extração e Transformação]
     end
 
-    subgraph "ARMAZENAMENTO"
+    subgraph "2. ARMAZENAMENTO"
         CSV[CSV Local<br/>data/books.csv]
         PostgreSQL[(PostgreSQL<br/>Database)]
         Tables[Tabelas:<br/>books, categories<br/>users, predictions]
     end
 
-    subgraph "PROCESSAMENTO"
+    subgraph "3. PROCESSAMENTO"
         FeatureEng[Engenharia de Features<br/>Serviço ML]
         Transform[Transformações:<br/>- price para float<br/>- availability para binário<br/>- category para codificado]
     end
 
-    subgraph "MACHINE LEARNING"
+    subgraph "4. MACHINE LEARNING"
         Training[Treinamento de Modelo<br/>Random Forest]
         ModelFile[rating_classifier_v1.0.0.pkl]
         Prediction[Serviço de Predição<br/>Inferência em Tempo Real]
     end
 
-    subgraph "API PÚBLICA"
+    subgraph "5. API PÚBLICA"
         RestAPI[REST API<br/>Flask + Swagger]
         Endpoints[Endpoints:<br/>/books<br/>/ml/features<br/>/ml/predictions]
     end
 
-    subgraph "CONSUMO"
+    subgraph "6. CONSUMO"
         DataScientist[Data Scientist<br/>Dados de Treinamento]
         MLEngineer[ML Engineer<br/>Predições]
         Apps[Apps Externos<br/>Recomendações de Livros]
@@ -176,35 +176,35 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "Fontes de Dados"
+    subgraph "1. DADOS"
         Books[(Tabela Books<br/>2000+ registros)]
     end
 
-    subgraph "Engenharia de Features"
+    subgraph "2. FEATURES"
         MLService[Serviço ML]
         Features[Features Extraídas:<br/>price_num: float<br/>rating: int<br/>availability_flag: 0/1<br/>category: string<br/>image_present: 0/1]
     end
 
-    subgraph "Pipeline de Treinamento"
+    subgraph "3. TREINAMENTO"
         TrainScript[ml_training/train_model.py]
         Preprocessing[Pré-processamento:<br/>1. Codificar categorias<br/>2. Codificar disponibilidade<br/>3. Tratar valores ausentes]
         Model[Random Forest<br/>Classifier]
         Evaluation[Avaliação:<br/>Accuracy, Precision<br/>Recall, F1-Score]
     end
 
-    subgraph "Persistência do Modelo"
+    subgraph "4. PERSISTÊNCIA"
         PKL[rating_classifier_v1.0.0.pkl<br/>Salvo com joblib]
         Metadata[Metadados do Modelo:<br/>versão, features<br/>accuracy, timestamp]
     end
 
-    subgraph "API de Inferência"
+    subgraph "5. INFERÊNCIA"
         LoadModel[Carregador de Modelo<br/>Carrega .pkl no startup]
         PredictionEndpoint[POST /api/v1/ml/predictions]
         Cache[Cache de Predições<br/>Em memória]
         SaveDB[(tabela predictions)]
     end
 
-    subgraph "Endpoints ML Prontos"
+    subgraph "6. ENDPOINTS ML"
         EP1[GET /ml/features<br/>Features paginadas]
         EP2[GET /ml/manifest<br/>Schema de features]
         EP3[GET /ml/training-data<br/>Exportação JSON ou CSV]
@@ -246,44 +246,44 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "Load Balancer"
+    subgraph "LOAD BALANCER"
         LB[NGINX / AWS ELB<br/>Load Balancer]
     end
 
-    subgraph "Camada de Aplicação - Escalabilidade Horizontal"
+    subgraph "APLICAÇÃO (Horizontal)"
         API1[Instância API 1<br/>Flask + Gunicorn]
         API2[Instância API 2<br/>Flask + Gunicorn]
         API3[Instância API N<br/>Flask + Gunicorn]
     end
 
-    subgraph "Camada de Banco de Dados"
+    subgraph "BANCO DE DADOS"
         PG_Primary[(PostgreSQL<br/>Primário - Escrita)]
         PG_Replica1[(PostgreSQL<br/>Réplica 1 - Leitura)]
         PG_Replica2[(PostgreSQL<br/>Réplica N - Leitura)]
     end
 
-    subgraph "Camada de Cache"
+    subgraph "CACHE"
         Redis[Redis Cluster<br/>Cache de Predições<br/>Armazenamento de Sessões]
     end
 
-    subgraph "Serviços ML - Microserviços"
+    subgraph "MICROSERVIÇOS ML"
         MLTrain[Serviço de Treinamento ML<br/>Jobs Assíncronos]
         MLInference[Serviço de Inferência ML<br/>API em Tempo Real]
         MLMonitor[Monitoramento de Modelo<br/>Detecção de Drift]
     end
 
-    subgraph "Registro de Modelos"
+    subgraph "REGISTRO DE MODELOS"
         MLflow[MLflow / AWS S3<br/>Versionamento de Modelos]
         Models[Modelos:<br/>v1.0.0, v1.1.0<br/>Metadados, Métricas]
     end
 
-    subgraph "Observabilidade"
+    subgraph "OBSERVABILIDADE"
         Prometheus[Prometheus<br/>Métricas]
         Grafana[Grafana<br/>Dashboards]
         ELK[ELK Stack<br/>Logs Centralizados]
     end
 
-    subgraph "Fila de Mensagens"
+    subgraph "FILA DE MENSAGENS"
         RabbitMQ[RabbitMQ / Kafka<br/>Tarefas Assíncronas]
         Workers[Workers Celery<br/>Scraping, Treinamento]
     end

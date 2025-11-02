@@ -20,8 +20,8 @@ jobs:
 
       - name: Set Heroku app name and Dockerfile
         run: |
-          echo "HEROKU_APP_NAME=${{ secrets.HEROKU_APP_NAME_BACKEND_DEV }}" >> $GITHUB_ENV
-          echo "DOCKERFILE=Dockerfile.backend.dev" >> $GITHUB_ENV
+          echo "HEROKU_APP_NAME=${{ secrets.HEROKU_APP_NAME_BACKEND }}" >> $GITHUB_ENV
+          echo "DOCKERFILE=Dockerfile.backend" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         run: |

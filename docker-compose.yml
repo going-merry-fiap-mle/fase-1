@@ -1,16 +1,16 @@
 version: "3.8"
 
 services:
-  backend-dev:
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile.backend.dev
-    image: fiap-fase1-backend:dev
-    container_name: fiap-backend-dev
+      dockerfile: Dockerfile.backend
+    image: fiap-fase1-backend:latest
+    container_name: fiap-backend
     ports:
       - "5000:5000"
     env_file:
-      - .env.dev
+      - .env
     volumes:
       - ./app:/app/app
       - ./alembic:/app/alembic
@@ -18,7 +18,7 @@ services:
       - ./logs:/app/logs
       - ./models:/app/models
       - ./ml_training:/app/ml_training
-    command: sh ./start-backend-dev.sh
+    command: sh ./start-backend.sh
     stdin_open: true
     tty: true
     restart: unless-stopped
@@ -29,11 +29,11 @@ services:
           memory: 2G
     shm_size: "2gb"
     networks:
-      - fiap-dev-network
+      - fiap-network
 
   dd-agent:
     image: gcr.io/datadoghq/agent:7
-    container_name: dd-agent-dev
+    container_name: dd-agent
     restart: always
     environment:
       DD_API_KEY: ${DD_API_KEY}
@@ -50,9 +50,9 @@ services:
       - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
     networks:
-      - fiap-dev-network
+      - fiap-network
 
 networks:
-  fiap-dev-network:
+  fiap-network:
     driver: bridge
-    name: fiap-fase1-dev-network
+    name: fiap-fase1-network
