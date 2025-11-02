@@ -515,8 +515,8 @@ Endpoint apenas salva uma predição que foi calculada externamente.
 ```
 
 #### Observações
-- **Ambientes:** Endpoint disponível em ambos os containers Docker (fiap-backend-dev e fiap-backend-prod)
-- **Volume compartilhado:** Ambos os containers montam `./models:/app/models` do host, compartilhando modelos treinados
+- **Ambientes:** Endpoint disponível no container de desenvolvimento Docker (`fiap-backend-dev`)
+- **Volume compartilhado:** O container monta `./models:/app/models` do host, compartilhando modelos treinados
 - **Treinamento automático:** Modelo é treinado automaticamente na primeira inicialização se não existir
 - **Cache:** Predições são cacheadas automaticamente para melhor performance
 - **Validação:** `confidence` deve estar entre 0.0 e 1.0
