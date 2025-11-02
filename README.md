@@ -11,7 +11,6 @@
 
 ## Links Importantes
 
-- **API em Produção:** [ADICIONAR LINK DO DEPLOY AQUI] (Swagger disponível em `/apidocs/`)
 - **Vídeo de Apresentação:** [ADICIONAR LINK DO VÍDEO AQUI]
 - **Repositório GitHub:** https://github.com/going-merry-fiap-mle/fase-1
 
@@ -109,22 +108,6 @@ cp .env.dev.example .env.dev
 
 # Subir backend com hot-reload
 docker-compose -f docker-compose.dev.yml up -d --build
-
-# Acessar aplicação
-# Backend: http://localhost:5000
-```
-
-### Quick Start - Produção
-```bash
-# Instalar Gunicorn (obrigatório para produção)
-poetry add gunicorn
-poetry lock
-
-# Configurar ambiente
-cp .env.prod.example .env.prod
-
-# Subir backend otimizado
-docker-compose -f docker-compose.prod.yml up -d --build
 
 # Acessar aplicação
 # Backend: http://localhost:5000
