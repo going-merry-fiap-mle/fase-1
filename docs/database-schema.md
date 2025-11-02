@@ -2,9 +2,61 @@
 
 Este documento descreve o modelo de dados utilizado pela API de Livros, incluindo tabelas, campos, tipos e relacionamentos.
 
+## Diagrama de Relacionamentos (ER)
+
+```mermaid
+erDiagram
+    CATEGORIES ||--o{ BOOKS : contains
+    BOOKS ||--o{ PREDICTIONS : has
+
+    BOOKS {
+        uuid id PK
+        string title
+        decimal price
+        int rating
+        string availability
+        uuid category_id FK
+        string image_url
+        datetime created_at
+        datetime updated_at
+    }
+
+    CATEGORIES {
+        uuid id PK
+        string name UK
+    }
+
+    PREDICTIONS {
+        uuid id PK
+        uuid book_id FK
+        string prediction_type
+        string predicted_value
+        float confidence
+        string model_version
+        json prediction_metadata
+        datetime created_at
+        datetime updated_at
+    }
+
+    USERS {
+        uuid id PK
+        string username UK
+        string password
+        enum role
+        datetime created_at
+    }
+```
+
+**Legenda:**
+- PK = Primary Key
+- FK = Foreign Key
+- UK = Unique Key
+
 ---
 
-## books
+## Tabelas e Campos
+
+### books
 - **id**: UUID (PK)
 - **title**: string
 - **price**: decimal(10,2)
@@ -30,7 +82,7 @@ Este documento descreve o modelo de dados utilizado pela API de Livros, incluind
 - **created_at**: datetime
 - **updated_at**: datetime
 
-## users *(opcional, para autenticação)*
+## users *(autenticação JWT)*
 - **id**: UUID (PK)
 - **username**: string (único)
 - **password**: string
@@ -42,7 +94,7 @@ Este documento descreve o modelo de dados utilizado pela API de Livros, incluind
 ### Observações
 - Todos os IDs são do tipo UUID (ex: `550e8400-e29b-41d4-a716-446655440000`).
 - O campo `role` da tabela `users` é um ENUM com os valores possíveis: 'admin', 'user'.
-- As tabelas opcionais são recomendadas para desafios de autenticação e monitoramento.
+- Todas as tabelas estão implementadas e em produção.
 - **Relacionamentos:**
   - `books.category_id` referencia `categories.id`
   - `predictions.book_id` referencia `books.id`

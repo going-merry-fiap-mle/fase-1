@@ -1,4 +1,4 @@
-# Documentação Docker
+# Guia de Deployment
 
 Esta documentação descreve como configurar, executar e gerenciar a aplicação usando Docker, tanto para desenvolvimento quanto para produção.
 
@@ -115,7 +115,7 @@ Obtenha as credenciais em: https://dashboard.heroku.com/apps → Resources → D
 
 ### Verificar conexão
 ```bash
-docker exec fiap-backend-dev python -c "import psycopg2; import os; conn = psycopg2.connect(os.getenv('DATABASE_URL')); print('✅ Conectado'); conn.close()"
+docker exec fiap-backend-dev python -c "import psycopg2; import os; conn = psycopg2.connect(os.getenv('DATABASE_URL')); print('Conectado com sucesso'); conn.close()"
 ```
 
 ---

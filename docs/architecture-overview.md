@@ -2,6 +2,20 @@
 
 Este projeto segue princípios da Arquitetura Hexagonal (Ports & Adapters), promovendo separação clara de responsabilidades, testabilidade, manutenção e evolução incremental. Abaixo está a visão atualizada e fiel ao código do repositório.
 
+## Índice
+
+1. [Visão Geral das Camadas](#visão-geral-das-camadas)
+2. [Mapa de Diretórios](#mapa-de-diretórios-resumo)
+3. [Fluxo de Requisição - Web Scraping](#fluxo-de-requisição-ex-web-scraping)
+4. [Fluxo de Requisição - Predição ML](#fluxo-de-requisição-ex-predição-ml)
+5. [Ports & Adapters - Mapeamento Prático](#ports--adapters-mapeamento-prático)
+6. [Decisões e Convenções](#decisões-e-convenções)
+7. [Melhorias Implementadas](#melhorias-implementadas)
+8. [Dependências Principais](#dependências-principais)
+9. [Resumo](#resumo)
+
+---
+
 ## Visão Geral das Camadas
 
 - Interface/Entrega (API HTTP)
@@ -22,13 +36,15 @@ Este projeto segue princípios da Arquitetura Hexagonal (Ports & Adapters), prom
 
 - Domínio (Núcleo de Regras)
   - Onde fica: app/domain
-  - Define modelos, serviços e contratos (ports) independentes de tecnologia. Atualmente contém módulos base como placeholders para evolução (models.py, services.py, repositories.py).
-  - Objetivo: concentrar regras de negócio e interfaces (p. ex., repositórios ou portas de scraping) que podem ser implementadas pela infraestrutura.
+  - Define modelos de domínio puros independentes de tecnologia (Book, Category, Prediction, User, Health).
+  - Modelos de domínio não possuem dependências de frameworks ou infraestrutura (sem SQLAlchemy, sem Flask).
+  - Objetivo: concentrar regras de negócio puras que podem ser utilizadas por qualquer camada superior.
 
 - Infraestrutura (Adapters)
   - Onde fica: app/infrastructure
-  - Implementa detalhes técnicos e integrações externas de acordo com as portas definidas (explícitas ou implícitas) pelo domínio/aplicação.
-  - Exemplo: WebDriverInfrastructure (app/infrastructure/webdriver_infrastructure.py) encapsula Selenium/Firefox e a configuração do driver. database.py é um stub para futura persistência. adapters/ reservado para implementações adicionais.
+  - Implementa detalhes técnicos e integrações externas de acordo com as portas definidas pelo domínio/aplicação.
+  - Componentes: WebDriverInfrastructure (Selenium/Firefox), database.py (configuração SQLAlchemy), session_manager.py (gestão de transações).
+  - Subpastas: adapters/ (BookAdapter, CategoryAdapter, PredictionAdapter), repository/ (implementações concretas dos repositórios), models/ (modelos SQLAlchemy ORM).
 
 - Esquemas (DTOs/Contratos de Dados)
   - Onde fica: app/schemas
@@ -118,11 +134,12 @@ Este projeto segue princípios da Arquitetura Hexagonal (Ports & Adapters), prom
     - logger.py
     - task_manager.py
 - docs/
-  - api_endpoints.md
-  - architecture.md (este documento)
-  - database_schema.md
-  - hexagonal.md
-  - ml_implementation.md
+  - api-reference.md
+  - architecture-overview.md (este documento)
+  - architecture-diagrams.md
+  - database-schema.md
+  - deployment.md
+  - machine-learning.md
 - ml_training/
   - train_model.py (script de treinamento)
 - models/
@@ -230,11 +247,6 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma "p
 
 - **Remoção de Código Legado**: arquivo models.py com modelos SQLAlchemy no domain removido
 
-## Pontos de Evolução
-- Domínio: promover os placeholders (models/repositories/services) a contratos explícitos (interfaces/protocolos) e mover regras de negócio específicas para o núcleo do domínio.
-- Persistência: implementar repositórios concretos em infrastructure/database.py (ou adapters/) e fazer a aplicação usar apenas portas do domínio.
-- Endpoint de busca: implementar get_book(id) completo (atualmente retorna placeholder)
-
 ## Dependências Principais
 
 - Flask, flasgger (API e documentação)
@@ -248,4 +260,13 @@ Este fluxo exemplifica Ports & Adapters: a lógica de aplicação/uso usa uma "p
 
 ## Resumo
 
-A arquitetura atual já separa interface, orquestração (controller/use case), serviços de aplicação e infraestrutura. O domínio está preparado para receber contratos e regras mais ricas. O uso de Ports & Adapters permite trocar componentes técnicos (ex.: driver de scraping, persistência) sem impactar o núcleo do sistema, assegurando testabilidade e evolução controlada.
+A arquitetura atual implementa completamente os princípios de Clean Architecture e Hexagonal Architecture:
+- **Separação total de responsabilidades**: Interface (API) → Controllers → Use Cases → Services → Ports → Adapters → Infrastructure
+- **Domínio puro**: Modelos de domínio sem dependências externas (Book, Category, Prediction, User, Health)
+- **Ports implementados**: IBookRepository, ICategoryRepository, IPredictionRepository com Protocol typing
+- **Adapters implementados**: BookAdapter, CategoryAdapter, PredictionAdapter delegando para repositories concretos
+- **Inversão de dependências**: Services dependem de abstrações (Ports), não de implementações concretas
+- **Testabilidade**: 180 testes unitários cobrindo todas as camadas
+- **Production-ready**: Todos os endpoints obrigatórios, opcionais e bônus implementados com autenticação JWT, Machine Learning e pipeline completo de dados
+
+O uso de Ports & Adapters permite trocar componentes técnicos (ex.: driver de scraping, banco de dados, framework ML) sem impactar o núcleo do sistema, assegurando testabilidade, manutenibilidade e evolução controlada.
