@@ -1,22 +1,20 @@
 from decimal import Decimal
 from uuid import UUID
 
-from app.controller.books.get_book_by_id_controller import GetBookByIdController
 from flask import Blueprint, jsonify, request
 from flask.wrappers import Response
 
-from app.controller.books.get_books_by_price_controller import GetBooksByPriceController
+from app.controller.books.get_book_by_id_controller import GetBookByIdController
 from app.controller.books.get_book_controller import GetBookController
+from app.controller.books.get_books_by_price_controller import GetBooksByPriceController
 from app.controller.books.search_books_controller import SearchBooksController
 from app.controller.books.top_rated_books_controller import TopRatedBooksController
 from app.schemas.pagination_schema import PaginationParams
-from app.core.auth import admin_required
 
 books_bp = Blueprint("books", __name__, url_prefix="/api/v1/books")
 
 
 @books_bp.route("", methods=["GET"])
-@admin_required
 def list_books() -> Response | tuple[Response, int]:
     """
     Listar todos os livros com paginação
@@ -77,18 +75,19 @@ def list_books() -> Response | tuple[Response, int]:
         description: Parâmetros inválidos
     """
     pagination = PaginationParams(
-        page=request.args.get('page', 1, type=int),
-        per_page=request.args.get('per_page', 10, type=int)
+        page=request.args.get("page", 1, type=int),
+        per_page=request.args.get("per_page", 10, type=int),
     )
 
     controller = GetBookController()
-    result = controller.call_controller(page=pagination.page, per_page=pagination.per_page)
+    result = controller.call_controller(
+        page=pagination.page, per_page=pagination.per_page
+    )
 
     return jsonify(result.model_dump())
 
 
 @books_bp.route("/<string:book_id>", methods=["GET"])
-@admin_required
 def get_book(book_id: str) -> Response | tuple[Response, int]:
     """
     Buscar livro por ID
@@ -130,21 +129,35 @@ def get_book(book_id: str) -> Response | tuple[Response, int]:
     """
 
     try:
-      UUID(book_id)
+        UUID(book_id)
 
     except ValueError:
-      return jsonify({"error": "Invalid value", "message": "badly formed hexadecimal UUID string"}), 400
-    
+        return (
+            jsonify(
+                {
+                    "error": "Invalid value",
+                    "message": "badly formed hexadecimal UUID string",
+                }
+            ),
+            400,
+        )
+
     controller = GetBookByIdController()
     result = controller.call_controller(book_id)
-    
-    
+
     if result:
-      return jsonify(result.model_dump()), 200
-    
+        return jsonify(result.model_dump()), 200
+
     else:
-      return jsonify({"error": "Book not found", "message": "No book found with the provided ID"}), 404
-      
+        return (
+            jsonify(
+                {
+                    "error": "Book not found",
+                    "message": "No book found with the provided ID",
+                }
+            ),
+            404,
+        )
 
 
 @books_bp.route("/search", methods=["GET"])
@@ -233,8 +246,8 @@ def search_books() -> Response | tuple[Response, int]:
               type: string
               example: "At least one search parameter (title or category) must be provided"
     """
-    title = request.args.get('title', type=str)
-    category = request.args.get('category', type=str)
+    title = request.args.get("title", type=str)
+    category = request.args.get("category", type=str)
 
     if title is not None:
         title = title.strip() or None
@@ -242,14 +255,19 @@ def search_books() -> Response | tuple[Response, int]:
         category = category.strip() or None
 
     if not title and not category:
-        return jsonify({
-            "error": "Invalid parameters",
-            "message": "At least one search parameter (title or category) must be provided"
-        }), 400
+        return (
+            jsonify(
+                {
+                    "error": "Invalid parameters",
+                    "message": "At least one search parameter (title or category) must be provided",
+                }
+            ),
+            400,
+        )
 
     pagination = PaginationParams(
-        page=request.args.get('page', 1, type=int),
-        per_page=request.args.get('per_page', 10, type=int)
+        page=request.args.get("page", 1, type=int),
+        per_page=request.args.get("per_page", 10, type=int),
     )
 
     controller = SearchBooksController()
@@ -257,7 +275,7 @@ def search_books() -> Response | tuple[Response, int]:
         title=title,
         category=category,
         page=pagination.page,
-        per_page=pagination.per_page
+        per_page=pagination.per_page,
     )
 
     return jsonify(result.model_dump())
@@ -329,22 +347,22 @@ def get_top_rated_books() -> Response | tuple[Response, int]:
         description: Parâmetros de paginação inválidos
     """
     pagination = PaginationParams(
-        page=request.args.get('page', 1, type=int),
-        per_page=request.args.get('per_page', 10, type=int)
+        page=request.args.get("page", 1, type=int),
+        per_page=request.args.get("per_page", 10, type=int),
     )
 
     controller = TopRatedBooksController()
     result = controller.call_controller(
-        page=pagination.page,
-        per_page=pagination.per_page
+        page=pagination.page, per_page=pagination.per_page
     )
 
     return jsonify(result.model_dump())
 
+
 @books_bp.route("/price-range", methods=["GET"])
 def price_range_books() -> tuple[Response, int]:
     """
-    Listar livros paginados dentro de uma faixa de preço 
+    Listar livros paginados dentro de uma faixa de preço
     ---
     tags:
       - Livros
@@ -411,29 +429,57 @@ def price_range_books() -> tuple[Response, int]:
     """
 
     pagination = PaginationParams(
-        page=request.args.get('page', 1, type=int),
-        per_page=request.args.get('per_page', 10, type=int)
+        page=request.args.get("page", 1, type=int),
+        per_page=request.args.get("per_page", 10, type=int),
     )
 
-    min_str = request.args.get('min')
-    max_str = request.args.get('max')
-    
+    min_str = request.args.get("min")
+    max_str = request.args.get("max")
+
     if min_str is None or max_str is None:
-        return jsonify({"error": "Invalid parameters", "message": "Both min and max parameters are required"}), 400
+        return (
+            jsonify(
+                {
+                    "error": "Invalid parameters",
+                    "message": "Both min and max parameters are required",
+                }
+            ),
+            400,
+        )
 
     try:
 
-      min_price = Decimal(min_str)
-      max_price = Decimal(max_str)
+        min_price = Decimal(min_str)
+        max_price = Decimal(max_str)
 
     except Exception:
-            return jsonify({"error": "Invalid parameters", "message": "Both min and max parameters are required"}), 400
-    
+        return (
+            jsonify(
+                {
+                    "error": "Invalid parameters",
+                    "message": "Both min and max parameters are required",
+                }
+            ),
+            400,
+        )
+
     if min_price > max_price:
-        return jsonify({"error": "Invalid parameters", "message": "'min' must be less than or equal to 'max'"}), 400
+        return (
+            jsonify(
+                {
+                    "error": "Invalid parameters",
+                    "message": "'min' must be less than or equal to 'max'",
+                }
+            ),
+            400,
+        )
 
     controller = GetBooksByPriceController()
-    result = controller.call_controller(page=pagination.page, per_page=pagination.per_page, min_price=min_price, max_price=max_price)
+    result = controller.call_controller(
+        page=pagination.page,
+        per_page=pagination.per_page,
+        min_price=min_price,
+        max_price=max_price,
+    )
 
-    
     return jsonify(result.model_dump()), 200
