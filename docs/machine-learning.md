@@ -2,7 +2,7 @@
 
 Esta documentação descreve a implementação do pipeline de Machine Learning para predição de ratings de livros.
 
-**Importante:** Este projeto utiliza Docker para todos os processos, incluindo treinamento de modelos ML. O endpoint de predições ML está disponível no ambiente de desenvolvimento (container `fiap-backend-dev`).
+**Importante:** Este projeto utiliza Docker para todos os processos, incluindo treinamento de modelos ML. O endpoint de predições ML está disponível no container `fiap-backend`.
 
 **Treinamento Automático:** O modelo é treinado automaticamente na primeira inicialização do container se não existir. Não é necessário executar comandos manuais de treinamento.
 
@@ -46,9 +46,9 @@ poetry run python -c "import sklearn; import joblib; import numpy; print('OK')"
 
 ### Pré-requisitos
 - Docker e docker-compose instalados
-- Container backend rodando (`docker-compose -f docker-compose.dev.yml up -d`)
+- Container backend rodando (`docker-compose up -d`)
 - PostgreSQL com dados de livros (tabelas `books` e `categories` populadas)
-- Variável `DATABASE_URL` configurada no arquivo de ambiente de desenvolvimento (`.env.dev`)
+- Variável `DATABASE_URL` configurada no arquivo de ambiente (`.env`)
 
 ### Treinamento Automático
 
@@ -77,14 +77,14 @@ O modelo é treinado **automaticamente** na primeira inicialização do containe
 
 Para retreinar o modelo manualmente (ex: após adicionar mais dados):
 
-**Treinamento manual (desenvolvimento):**
+**Treinamento manual:**
 ```bash
-docker exec fiap-backend-dev poetry run python ml_training/train_model.py
+docker exec fiap-backend poetry run python ml_training/train_model.py
 ```
 
 Após retreinamento manual, reinicie o container para recarregar o modelo:
 ```bash
-docker-compose -f docker-compose.dev.yml restart backend-dev
+docker-compose restart backend
 ```
 
 ### Arquivos gerados
@@ -98,7 +98,7 @@ docker-compose -f docker-compose.dev.yml restart backend-dev
 ls -lh models/
 
 # Dentro do container
-docker exec fiap-backend-dev ls -lh /app/models
+docker exec fiap-backend ls -lh /app/models
 
 # Saída esperada:
 # rating_classifier_v1.pkl  (~500KB)
@@ -286,9 +286,9 @@ Endpoint apenas salva predição já calculada.
 ### Criar tabela no banco de dados
 A tabela `predictions` é criada automaticamente via Alembic migrations.
 
-**Desenvolvimento (Docker):**
+**Via Docker:**
 ```bash
-docker exec fiap-backend-dev poetry run alembic upgrade head
+docker exec fiap-backend poetry run alembic upgrade head
 ```
 
 A migration `add_predictions_ml` cria:
@@ -395,17 +395,15 @@ curl -X POST http://localhost:5000/api/v1/ml/predictions \
 
 ### Workflow completo com Docker
 
-#### Desenvolvimento (Dev)
-
 ```bash
-# 1. Iniciar ambiente de desenvolvimento
-docker-compose -f docker-compose.dev.yml up -d
+# 1. Iniciar ambiente
+docker-compose up -d
 
 # Aguardar inicialização e treinamento automático (se necessário)
 # Logs indicarão se modelo foi treinado ou carregado
 
 # 2. Verificar logs de inicialização
-docker logs fiap-backend-dev
+docker logs fiap-backend
 
 # 3. Testar endpoint de predição
 curl -X POST http://localhost:5000/api/v1/ml/predictions \
@@ -416,7 +414,7 @@ curl -X POST http://localhost:5000/api/v1/ml/predictions \
 ls -lh models/
 
 # 5. Monitorar logs em tempo real
-docker logs fiap-backend-dev -f
+docker logs fiap-backend -f
 ```
 
 #### Retreinamento Manual (Opcional)
@@ -425,10 +423,10 @@ Se necessário retreinar após adicionar novos dados:
 
 ```bash
 # Retreinar em DEV
-docker exec fiap-backend-dev poetry run python ml_training/train_model.py
+docker exec fiap-backend poetry run python ml_training/train_model.py
 
 # Reiniciar para recarregar o modelo
-docker-compose -f docker-compose.dev.yml restart backend-dev
+docker-compose restart backend
 ```
 
 **Volumes configurados:**
@@ -472,11 +470,11 @@ O treinamento é automático, mas se encontrar problemas:
 
 ```bash
 # 1. Verificar logs de inicialização
-docker logs fiap-backend-dev | grep -i "training\|model"
+docker logs fiap-backend | grep -i "training\|model"
 
 # 2. Verificar se modelos existem
 ls models/
-docker exec fiap-backend-dev ls -lh /app/models
+docker exec fiap-backend ls -lh /app/models
 
 # 3. Se logs indicarem erro de treinamento, verificar pré-requisitos:
 #    - Banco de dados configurado (DATABASE_URL)
@@ -484,18 +482,18 @@ docker exec fiap-backend-dev ls -lh /app/models
 #    - Conexão com PostgreSQL funcionando
 
 # 4. Retreinar manualmente se necessário
-docker exec fiap-backend-dev poetry run python ml_training/train_model.py
+docker exec fiap-backend poetry run python ml_training/train_model.py
 
 # 5. Reiniciar container
-docker-compose -f docker-compose.dev.yml restart backend-dev
+docker-compose restart backend
 ```
 
 ### Erro "Model not available" (503)
 - **Causa:** Treinamento automático falhou ou não houve dados suficientes
-- **Diagnóstico:** Verificar logs do container com `docker logs fiap-backend-dev`
+- **Diagnóstico:** Verificar logs do container com `docker logs fiap-backend`
 - **Solução:**
   1. Garantir que há dados no banco (mínimo 100 livros)
-  2. Verificar variável `DATABASE_URL` no `.env.dev`
+  2. Verificar variável `DATABASE_URL` no `.env`
   3. Retreinar manualmente se necessário
 
 ### Predição sem dados
@@ -534,8 +532,8 @@ def session_scope(self) -> Generator[Session, None, None]:
 
 ### Docker dev environment
 - **Volumes necessários:** `./models:/app/models` e `./ml_training:/app/ml_training`
-- **Rebuild:** `docker-compose -f docker-compose.dev.yml build --no-cache backend-dev`
-- **Restart:** `docker-compose -f docker-compose.dev.yml up -d backend-dev`
+- **Rebuild:** `docker-compose build --no-cache backend`
+- **Restart:** `docker-compose up -d backend`
 - **Hot-reload:** Mudanças em Python são aplicadas automaticamente (volume mount)
 
 ---
@@ -543,7 +541,7 @@ def session_scope(self) -> Generator[Session, None, None]:
 ## Observações
 
 - **Docker-first:** Projeto utiliza containers para todos os processos (consistência e reprodutibilidade)
-- **Ambiente:** Endpoint ML disponível no container de desenvolvimento (`fiap-backend-dev`)
+- **Ambiente:** Endpoint ML disponível no container (`fiap-backend`)
 - **Volumes compartilhados:** Modelos persistem via volume `./models:/app/models`
 - **Modelos não versionados:** Arquivos em `models/` não são commitados (`.gitignore`)
 - **Requisitos:** Mínimo ~100 livros no banco para treinar modelo com qualidade

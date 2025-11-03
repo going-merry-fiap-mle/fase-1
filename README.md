@@ -11,8 +11,9 @@
 
 ## Links Importantes
 
-- **Vídeo de Apresentação:** [ADICIONAR LINK DO VÍDEO AQUI]
-- **Repositório GitHub:** https://github.com/going-merry-fiap-mle/fase-1
+- **Vídeo de Apresentação:**: [ADICIONAR LINK DO VÍDEO AQUI]
+- **Repositório GitHub:**: https://github.com/going-merry-fiap-mle/fase-1
+- **Link do ambiente produtivo**: https://fase-1-backend-dev-602c0b3ce639.herokuapp.com/apidocs/
 
 ---
 
@@ -101,13 +102,13 @@ graph LR
 
 ## Como rodar o projeto com Docker
 
-### Quick Start - Desenvolvimento
+### Quick Start
 ```bash
 # Configurar ambiente
-cp .env.dev.example .env.dev
+cp .env.example .env
 
 # Subir backend com hot-reload
-docker-compose -f docker-compose.dev.yml up -d --build
+docker-compose up -d --build
 
 # Acessar aplicação
 # Backend: http://localhost:5000
@@ -125,7 +126,7 @@ O projeto inclui um sistema de predição de ratings usando Random Forest Classi
 
 ```bash
 # 1. Subir o ambiente
-docker-compose -f docker-compose.dev.yml up -d
+docker-compose up -d
 
 # O modelo treina automaticamente na primeira inicialização se não existir
 

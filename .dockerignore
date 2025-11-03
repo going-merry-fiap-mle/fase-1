@@ -76,7 +76,7 @@ CHANGELOG
 .env.local
 .env.*.local
 
-# Cache do Poetry (desenvolvimento)
+# Cache do Poetry
 poetry.lock.backup
 
 # Otimizações adicionais

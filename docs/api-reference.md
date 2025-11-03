@@ -400,7 +400,7 @@ A seguir estão os endpoints expostos pelo blueprint `ml` (prefixo `/api/v1/ml`)
 ### Criar ou executar predições de Machine Learning
 - **Endpoint:** `POST /api/v1/ml/predictions`
 - **Descrição:** Cria uma nova predição ou executa o modelo de ML para gerar uma predição automaticamente. Este endpoint tem dois comportamentos distintos baseados nos parâmetros fornecidos.
-- **Disponibilidade:** Este endpoint está disponível em ambos os ambientes Docker (desenvolvimento e produção). Ambos os containers montam o volume `./models` e carregam os modelos ML na inicialização.
+- **Disponibilidade:** Este endpoint está disponível no container Docker. O container monta o volume `./models` e carrega os modelos ML na inicialização.
 - **Documentação completa:** Ver `docs/machine-learning.md` para detalhes completos sobre treinamento, cache, e troubleshooting.
 
 #### Modo 1: Executar ML em Tempo Real
@@ -515,7 +515,7 @@ Endpoint apenas salva uma predição que foi calculada externamente.
 ```
 
 #### Observações
-- **Ambientes:** Endpoint disponível no container de desenvolvimento Docker (`fiap-backend-dev`)
+- **Ambientes:** Endpoint disponível no container Docker (`fiap-backend`)
 - **Volume compartilhado:** O container monta `./models:/app/models` do host, compartilhando modelos treinados
 - **Treinamento automático:** Modelo é treinado automaticamente na primeira inicialização se não existir
 - **Cache:** Predições são cacheadas automaticamente para melhor performance

@@ -94,7 +94,7 @@ erDiagram
 ### Observações
 - Todos os IDs são do tipo UUID (ex: `550e8400-e29b-41d4-a716-446655440000`).
 - O campo `role` da tabela `users` é um ENUM com os valores possíveis: 'admin', 'user'.
-- Todas as tabelas estão implementadas e em produção.
+- Todas as tabelas estão implementadas e ativas.
 - **Relacionamentos:**
   - `books.category_id` referencia `categories.id`
   - `predictions.book_id` referencia `books.id`

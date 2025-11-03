@@ -24,13 +24,9 @@ env/
 # Environment Variables (NUNCA commitar)
 # ================================================
 .env*
-!.env*.example
-.env.dev
+!.env.example
 .env.local
 .env.*.local
-
-# Mas MANTER os examples (para referencia)
-# !.env.dev.example
 
 # ================================================
 # IDEs
