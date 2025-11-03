@@ -42,6 +42,8 @@ class LogManager:
         console_handler.setFormatter(JsonLogFormatter())
         root.addHandler(console_handler)
 
+        logging.getLogger("werkzeug").setLevel(logging.WARNING)
+
         logging.captureWarnings(True)
 
 
