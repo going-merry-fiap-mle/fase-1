@@ -47,6 +47,38 @@ jobs:
           docker tag fiap-fase1-backend:latest registry.heroku.com/${{ env.HEROKU_APP_NAME }}/web
           docker push registry.heroku.com/${{ env.HEROKU_APP_NAME }}/web
 
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+
+      - name: Set Heroku config vars for Datadog APM
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          # Configure Datadog APM for agentless mode (direct to Datadog intake)
+          heroku config:set \
+            DD_API_KEY="${{ secrets.DD_API_KEY }}" \
+            DD_SITE="us5.datadoghq.com" \
+            DD_SERVICE="fase-1-backend" \
+            DD_ENV="production" \
+            DD_VERSION="1.0.0" \
+            DD_LOGS_INJECTION="true" \
+            DD_TRACE_SAMPLE_RATE="1.0" \
+            DD_TRACE_AGENT_URL="https://trace.agent.us5.datadoghq.com" \
+            --app ${{ env.HEROKU_APP_NAME }}
+
+      - name: Configure Heroku Log Drain to Datadog
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          DRAIN_URL="syslog+tls://intake.logs.us5.datadoghq.com:10516?token=${{ secrets.DD_API_KEY }}&ddsource=heroku&service=fase-1-backend&ddtags=env:production,site:us5"
+          # Add only if not already present
+          if ! heroku drains -a ${{ env.HEROKU_APP_NAME }} | grep -q "$DRAIN_URL"; then
+            heroku drains:add "$DRAIN_URL" -a ${{ env.HEROKU_APP_NAME }}
+          else
+            echo "Datadog log drain already configured"
+          fi
+
       - name: Release app on Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
