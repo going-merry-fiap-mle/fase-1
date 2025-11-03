@@ -51,36 +51,25 @@ jobs:
         run: |
           curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
-      - name: Remove DD_TRACE_AGENT_URL if exists (Docker mode incompatibility)
+      - name: Clean up old APM config vars
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          # In Docker container mode, agent runs locally at 127.0.0.1:8126
-          # DD_TRACE_AGENT_URL causes ddtrace to use agentless mode (which fails)
-          # Remove it if it exists from previous agentless configuration
-          if heroku config:get DD_TRACE_AGENT_URL -a ${{ env.HEROKU_APP_NAME }} 2>/dev/null | grep -q "trace.agent"; then
-            echo "Removing DD_TRACE_AGENT_URL (incompatible with Docker container mode)"
-            heroku config:unset DD_TRACE_AGENT_URL -a ${{ env.HEROKU_APP_NAME }}
-          else
-            echo "DD_TRACE_AGENT_URL not set (correct for Docker mode)"
-          fi
+          # Remove old APM-related variables (no longer needed)
+          heroku config:unset DD_TRACE_AGENT_URL DD_TRACE_SAMPLE_RATE DD_HEROKU_DYNO DD_VERSION \
+            -a ${{ env.HEROKU_APP_NAME }} 2>/dev/null || echo "APM vars already clean"
 
-      - name: Set Heroku config vars for Datadog APM (Docker Container Mode)
+      - name: Set Heroku config vars for Datadog Logs
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          # Configure Datadog APM for Docker container mode with local agent
-          # DD_HEROKU_DYNO=true enables proper dyno tagging
-          # IMPORTANT: Do NOT set DD_TRACE_AGENT_URL - agent runs locally in container
+          # Configure Datadog for logs-only mode (APM disabled)
           heroku config:set \
             DD_API_KEY="${{ secrets.DD_API_KEY }}" \
             DD_SITE="us5.datadoghq.com" \
             DD_SERVICE="fase-1-backend" \
             DD_ENV="production" \
-            DD_VERSION="1.0.0" \
             DD_LOGS_INJECTION="true" \
-            DD_TRACE_SAMPLE_RATE="1.0" \
-            DD_HEROKU_DYNO="true" \
             --app ${{ env.HEROKU_APP_NAME }}
 
       - name: Configure Heroku Log Drain to Datadog
