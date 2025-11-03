@@ -15,8 +15,9 @@ site: ${DD_SITE}
 
 ## @param hostname - string - optional - default: auto-detected
 ## Force the hostname name.
+## In Heroku, use the dyno name as hostname
 #
-# hostname: <HOSTNAME_NAME>
+hostname: ${DYNO}
 
 ## @param tags - list of key:value elements - optional
 ## List of host tags. Attached to every metric, event, log, trace, and service check emitted by this Agent.
@@ -65,19 +66,15 @@ process_config:
   #
   enabled: "true"
 
-## @param dogstatsd_config - custom object - optional
-## Enter specific configurations for DogStatsD.
+## @param dogstatsd_port - integer - optional - default: 8125
+## Override the default DogStatsD port.
 #
-dogstatsd_config:
-  ## @param dogstatsd_port - integer - optional - default: 8125
-  ## Override the default DogStatsD port.
-  #
-  port: 8125
+dogstatsd_port: 8125
 
-  ## @param non_local_traffic - boolean - optional - default: false
-  ## Set to true to allow DogStatsD to receive metrics from other containers.
-  #
-  non_local_traffic: false
+## @param dogstatsd_non_local_traffic - boolean - optional - default: false
+## Set to true to allow DogStatsD to receive metrics from other containers.
+#
+dogstatsd_non_local_traffic: false
 
 ## @param log_level - string - optional - default: info
 ## Minimum log level of the Datadog Agent.

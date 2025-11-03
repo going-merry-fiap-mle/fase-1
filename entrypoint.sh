@@ -58,55 +58,37 @@ if [ -n "${DYNO:-}" ]; then
       echo "[INFO] Datadog configuration processed successfully"
     fi
     
-    echo "[INFO] Starting Datadog Agent..."
-    datadog-agent run > /tmp/datadog-agent.log 2>&1 &
-    DD_AGENT_PID=$!
-    echo "[INFO] Datadog Agent PID: $DD_AGENT_PID"
+    echo "[INFO] Skipping main Datadog Agent (not needed for APM-only setup)"
+    echo "[INFO] Main agent causes issues with Heroku's ephemeral hostnames"
     
-    echo "[INFO] Starting Datadog APM Trace Agent..."
+    echo "[INFO] Starting Datadog APM Trace Agent (standalone mode)..."
     /opt/datadog-agent/embedded/bin/trace-agent --config=/etc/datadog-agent/datadog.yaml > /tmp/trace-agent.log 2>&1 &
     TRACE_AGENT_PID=$!
     echo "[INFO] Trace Agent PID: $TRACE_AGENT_PID"
     
-    echo "[INFO] Starting Datadog Process Agent..."
-    /opt/datadog-agent/embedded/bin/process-agent --config=/etc/datadog-agent/datadog.yaml > /tmp/process-agent.log 2>&1 &
-    PROCESS_AGENT_PID=$!
-    echo "[INFO] Process Agent PID: $PROCESS_AGENT_PID"
+    echo "[INFO] Skipping Datadog Process Agent (optional, not critical for APM)"
     
-    echo "[INFO] Waiting for agents to initialize..."
+    echo "[INFO] Waiting for Trace Agent to initialize..."
     sleep 5
-    
-    if kill -0 $DD_AGENT_PID 2>/dev/null; then
-      echo "[INFO] ✅ Datadog Agent is running (PID: $DD_AGENT_PID)"
-    else
-      echo "[ERROR] ❌ Datadog Agent failed to start!"
-      echo "[ERROR] Agent logs:"
-      cat /tmp/datadog-agent.log | tail -20
-    fi
     
     if kill -0 $TRACE_AGENT_PID 2>/dev/null; then
       echo "[INFO] ✅ Datadog APM Trace Agent is running (PID: $TRACE_AGENT_PID)"
+      
+      echo "[INFO] Checking if Trace Agent is listening on port 8126..."
+      sleep 2
+      if nc -z 127.0.0.1 8126 2>/dev/null; then
+        echo "[INFO] ✅ Trace Agent is listening on port 8126"
+        echo "[INFO] 🎉 Datadog APM setup complete and ready!"
+      else
+        echo "[ERROR] ❌ Trace Agent is NOT listening on port 8126!"
+        echo "[ERROR] This will cause ddtrace to fail"
+        echo "[ERROR] Trace Agent logs:"
+        cat /tmp/trace-agent.log | tail -20
+      fi
     else
       echo "[ERROR] ❌ Datadog APM Trace Agent failed to start!"
       echo "[ERROR] Trace Agent logs:"
       cat /tmp/trace-agent.log | tail -20
-    fi
-    
-    if kill -0 $PROCESS_AGENT_PID 2>/dev/null; then
-      echo "[INFO] ✅ Datadog Process Agent is running (PID: $PROCESS_AGENT_PID)"
-    else
-      echo "[WARN] ⚠️  Datadog Process Agent may have failed to start"
-      echo "[WARN] Process Agent logs:"
-      cat /tmp/process-agent.log | tail -10
-    fi
-    
-    echo "[INFO] Checking if Trace Agent is listening on port 8126..."
-    sleep 2
-    if nc -z 127.0.0.1 8126 2>/dev/null; then
-      echo "[INFO] ✅ Trace Agent is listening on port 8126"
-    else
-      echo "[ERROR] ❌ Trace Agent is NOT listening on port 8126!"
-      echo "[ERROR] This will cause ddtrace to fail or use agentless mode"
     fi
   fi
 else
