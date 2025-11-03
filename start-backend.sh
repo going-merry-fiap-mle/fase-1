@@ -19,24 +19,26 @@ else
 fi
 
 if [ -n "${DYNO:-}" ]; then
-  echo "[INFO] Heroku detected (DYNO=$DYNO), configuring agentless mode for Datadog APM"
-
-  if [ -z "${DD_TRACE_AGENT_URL:-}" ]; then
-    if [ -n "${DD_SITE:-}" ]; then
-      export DD_TRACE_AGENT_URL="https://trace.agent.${DD_SITE}"
-      echo "[INFO] DD_TRACE_AGENT_URL not set; defaulting to ${DD_TRACE_AGENT_URL} (from DD_SITE)"
-    else
-      export DD_TRACE_AGENT_URL="https://trace.agent.datadoghq.com"
-      echo "[INFO] DD_SITE not set; defaulting DD_TRACE_AGENT_URL to ${DD_TRACE_AGENT_URL}"
-    fi
-  fi
+  echo "[INFO] Heroku detected (DYNO=$DYNO), configuring Datadog APM with local agent"
+  
+  export DD_AGENT_HOST="${DD_AGENT_HOST:-127.0.0.1}"
+  export DD_TRACE_AGENT_PORT="${DD_TRACE_AGENT_PORT:-8126}"
+  export DD_DOGSTATSD_PORT="${DD_DOGSTATSD_PORT:-8125}"
+  
+  echo "[INFO] Datadog APM configuration:"
+  echo "  DD_AGENT_HOST: $DD_AGENT_HOST"
+  echo "  DD_TRACE_AGENT_PORT: $DD_TRACE_AGENT_PORT"
+  echo "  DD_DOGSTATSD_PORT: $DD_DOGSTATSD_PORT"
 
   if [ -z "${DD_LOGS_INJECTION:-}" ]; then
     export DD_LOGS_INJECTION="true"
     echo "[INFO] Enabling DD_LOGS_INJECTION for log/trace correlation"
   fi
 else
-  echo "[INFO] Local/container environment detected, using DD_AGENT_HOST=${DD_AGENT_HOST:-localhost}"
+  echo "[INFO] Local/container environment detected"
+  export DD_AGENT_HOST="${DD_AGENT_HOST:-localhost}"
+  export DD_TRACE_AGENT_PORT="${DD_TRACE_AGENT_PORT:-8126}"
+  echo "[INFO] Using DD_AGENT_HOST=$DD_AGENT_HOST:$DD_TRACE_AGENT_PORT"
 fi
 
 exec poetry run ddtrace-run python -m app.main

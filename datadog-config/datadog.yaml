@@ -1,0 +1,101 @@
+## IMPORTANT: Replace <DD_API_KEY> with your actual Datadog API key
+## This file will be copied to /etc/datadog-agent/datadog.yaml in the container
+
+## @param api_key - string - required
+## The Datadog API key to associate your Agent's data with your organization.
+## Create a new API key here: https://app.datadoghq.com/account/settings
+#
+api_key: ${DD_API_KEY}
+
+## @param site - string - optional - default: datadoghq.com
+## The site of the Datadog intake to send Agent data to.
+## Set to 'datadoghq.eu' to send data to the EU site.
+#
+site: ${DD_SITE}
+
+## @param hostname - string - optional - default: auto-detected
+## Force the hostname name.
+#
+# hostname: <HOSTNAME_NAME>
+
+## @param tags - list of key:value elements - optional
+## List of host tags. Attached to every metric, event, log, trace, and service check emitted by this Agent.
+#
+tags:
+  - env:${DD_ENV}
+  - service:${DD_SERVICE}
+  - dyno:${DYNO}
+  - heroku:true
+
+## @param logs_enabled - boolean - optional - default: false
+## Enable Datadog Agent log collection by setting logs_enabled to true.
+#
+logs_enabled: true
+
+## @param apm_config - custom object - optional
+## Enter specific configurations for your APM (Application Performance Monitoring) setup.
+#
+apm_config:
+  ## @param enabled - boolean - optional - default: true
+  ## Set to true to enable APM.
+  #
+  enabled: true
+
+  ## @param env - string - optional - default: none
+  ## The environment tag that traces should be tagged with.
+  #
+  env: ${DD_ENV}
+
+  ## @param receiver_port - integer - optional - default: 8126
+  ## The port that the trace receiver should listen on.
+  #
+  receiver_port: 8126
+
+  ## @param apm_non_local_traffic - boolean - optional - default: false
+  ## Set to true to allow the agent to receive traces from other containers.
+  #
+  apm_non_local_traffic: false
+
+## @param process_config - custom object - optional
+## Enter specific configurations for your process collection.
+#
+process_config:
+  ## @param enabled - string - optional - default: "true"
+  ## Set to "true" to enable process collection.
+  #
+  enabled: "true"
+
+## @param dogstatsd_config - custom object - optional
+## Enter specific configurations for DogStatsD.
+#
+dogstatsd_config:
+  ## @param dogstatsd_port - integer - optional - default: 8125
+  ## Override the default DogStatsD port.
+  #
+  port: 8125
+
+  ## @param non_local_traffic - boolean - optional - default: false
+  ## Set to true to allow DogStatsD to receive metrics from other containers.
+  #
+  non_local_traffic: false
+
+## @param log_level - string - optional - default: info
+## Minimum log level of the Datadog Agent.
+## Valid log levels are: trace, debug, info, warn, error, critical, off
+#
+log_level: info
+
+## @param log_file - string - optional
+## Path to the Agent log file.
+#
+# log_file: /var/log/datadog/agent.log
+
+## @param use_dogstatsd - boolean - optional - default: true
+## Set to false to disable DogStatsD.
+#
+use_dogstatsd: true
+
+## @param heroku_dyno - boolean - optional - default: false
+## Set to true when running on Heroku to enable proper dyno tagging.
+#
+heroku_dyno: ${DD_HEROKU_DYNO}
