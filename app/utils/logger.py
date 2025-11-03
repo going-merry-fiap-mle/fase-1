@@ -13,6 +13,12 @@ class JsonLogFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
         }
+        trace_id = getattr(record, "dd.trace_id", None)
+        span_id = getattr(record, "dd.span_id", None)
+        if trace_id:
+            log_record["dd.trace_id"] = str(trace_id)
+        if span_id:
+            log_record["dd.span_id"] = str(span_id)
         return json.dumps(log_record)
 
 
@@ -20,7 +26,11 @@ class LogManager:
     @staticmethod
     def setup(level: str | None = None) -> None:
         level_name = (level or os.getenv("LOG_LEVEL", "INFO")).upper()
-        log_level = logging._nameToLevel.get(level_name, logging.INFO)
+        try:
+            names_map = logging.getLevelNamesMapping()
+            log_level = names_map.get(level_name, logging.INFO)
+        except Exception:
+            log_level = logging.INFO
 
         root = logging.getLogger()
         for handler in root.handlers[:]:
