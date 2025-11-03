@@ -33,28 +33,60 @@ RUN apt-get update && \
     libxrandr2 \
     libgbm1 \
     wget \
-    ca-certificates && \
-    curl -sSL https://install.python-poetry.org | python3 - && \ 
+    ca-certificates \
+    gnupg \
+    apt-transport-https \
+    gpg-agent && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -sSL https://install.python-poetry.org | python3 - && \
+    ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry && \
+    poetry --version
+
+ENV DATADOG_APT_KEYRING="/usr/share/keyrings/datadog-archive-keyring.gpg"
+ENV DATADOG_APT_KEYS_URL="https://keys.datadoghq.com"
+
+RUN sh -c "echo 'deb [signed-by=${DATADOG_APT_KEYRING}] https://apt.datadoghq.com/ stable 7' > /etc/apt/sources.list.d/datadog.list" && \
+    touch ${DATADOG_APT_KEYRING} && \
+    curl -o /tmp/DATADOG_APT_KEY_CURRENT.public "${DATADOG_APT_KEYS_URL}/DATADOG_APT_KEY_CURRENT.public" && \
+    gpg --ignore-time-conflict --no-default-keyring --keyring ${DATADOG_APT_KEYRING} --import /tmp/DATADOG_APT_KEY_CURRENT.public && \
+    curl -o /tmp/DATADOG_APT_KEY_06462314.public "${DATADOG_APT_KEYS_URL}/DATADOG_APT_KEY_06462314.public" && \
+    gpg --ignore-time-conflict --no-default-keyring --keyring ${DATADOG_APT_KEYRING} --import /tmp/DATADOG_APT_KEY_06462314.public && \
+    curl -o /tmp/DATADOG_APT_KEY_C0962C7D.public "${DATADOG_APT_KEYS_URL}/DATADOG_APT_KEY_C0962C7D.public" && \
+    gpg --ignore-time-conflict --no-default-keyring --keyring ${DATADOG_APT_KEYRING} --import /tmp/DATADOG_APT_KEY_C0962C7D.public && \
+    curl -o /tmp/DATADOG_APT_KEY_F14F620E.public "${DATADOG_APT_KEYS_URL}/DATADOG_APT_KEY_F14F620E.public" && \
+    gpg --ignore-time-conflict --no-default-keyring --keyring ${DATADOG_APT_KEYRING} --import /tmp/DATADOG_APT_KEY_F14F620E.public && \
+    curl -o /tmp/DATADOG_APT_KEY_382E94DE.public "${DATADOG_APT_KEYS_URL}/DATADOG_APT_KEY_382E94DE.public" && \
+    gpg --ignore-time-conflict --no-default-keyring --keyring ${DATADOG_APT_KEYRING} --import /tmp/DATADOG_APT_KEY_382E94DE.public && \
+    rm /tmp/DATADOG_APT_KEY_*.public
+
+RUN apt-get update && \
+    apt-get install -y --force-yes datadog-agent && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml poetry.lock* ./
 
-RUN poetry lock
-
-RUN poetry install --no-interaction --no-ansi --no-root
+RUN poetry lock && \
+    poetry install --no-interaction --no-ansi --no-root
 
 COPY app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini ./
 
 COPY start-backend.sh ./
+COPY entrypoint.sh /
 
 RUN sed -i 's/\r$//' /app/start-backend.sh && \
-    chmod +x /app/start-backend.sh
+    chmod +x /app/start-backend.sh && \
+    sed -i 's/\r$//' /entrypoint.sh && \
+    chmod +x /entrypoint.sh
 
-RUN mkdir -p /app/data /app/logs /app/models
+RUN mkdir -p /app/data /app/logs /app/models /etc/datadog-agent
 
-EXPOSE 5000
+COPY datadog-config/ /etc/datadog-agent/
 
-CMD sh -c "Xvfb :99 -screen 0 1920x1080x24 & ./start-backend.sh"
+EXPOSE 5000 8125/udp 8126/tcp
+
+CMD ["/entrypoint.sh"]
