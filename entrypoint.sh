@@ -141,4 +141,9 @@ echo "[INFO] Flask application PID: $FLASK_PID"
 echo "[INFO] All processes started. Waiting for signals..."
 echo "[INFO] To shutdown gracefully, send SIGTERM or SIGINT"
 
-wait
+while kill -0 $FLASK_PID 2>/dev/null; do
+  wait $FLASK_PID || true
+done
+
+echo "[INFO] Flask process ended, initiating cleanup..."
+cleanup
