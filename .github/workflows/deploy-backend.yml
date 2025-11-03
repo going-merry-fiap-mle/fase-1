@@ -15,6 +15,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Set up Docker Compose plugin
+        uses: docker/compose-action@v2
+
       - name: Login to Heroku Container Registry
         run: echo ${{ secrets.HEROKU_API_KEY }} | docker login --username=_ --password-stdin registry.heroku.com
 
@@ -23,9 +26,21 @@ jobs:
           echo "HEROKU_APP_NAME=${{ secrets.HEROKU_APP_NAME_BACKEND }}" >> $GITHUB_ENV
           echo "DOCKERFILE=Dockerfile.backend" >> $GITHUB_ENV
 
-      - name: Build and push Docker image
+      - name: Build and create containers with docker compose
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
         run: |
-          docker build -f $DOCKERFILE -t registry.heroku.com/${{ env.HEROKU_APP_NAME }}/web .
+          # Build and start the backend and dd-agent containers defined in docker-compose.yml
+          docker compose -f docker-compose.yml up -d --build backend dd-agent
+
+          # The compose file tags the backend image as 'fiap-fase1-backend:latest' (see docker-compose.yml).
+          # Ensure the image exists; if not, build it directly as a fallback.
+          if ! docker image inspect fiap-fase1-backend:latest >/dev/null 2>&1; then
+            docker build -f Dockerfile.backend -t fiap-fase1-backend:latest .
+          fi
+
+          # Tag the backend image for Heroku registry and push
+          docker tag fiap-fase1-backend:latest registry.heroku.com/${{ env.HEROKU_APP_NAME }}/web
           docker push registry.heroku.com/${{ env.HEROKU_APP_NAME }}/web
 
       - name: Release app on Heroku
