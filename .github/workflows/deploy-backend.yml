@@ -51,13 +51,27 @@ jobs:
         run: |
           curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
+      - name: Remove DD_TRACE_AGENT_URL if exists (Docker mode incompatibility)
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          # In Docker container mode, agent runs locally at 127.0.0.1:8126
+          # DD_TRACE_AGENT_URL causes ddtrace to use agentless mode (which fails)
+          # Remove it if it exists from previous agentless configuration
+          if heroku config:get DD_TRACE_AGENT_URL -a ${{ env.HEROKU_APP_NAME }} 2>/dev/null | grep -q "trace.agent"; then
+            echo "Removing DD_TRACE_AGENT_URL (incompatible with Docker container mode)"
+            heroku config:unset DD_TRACE_AGENT_URL -a ${{ env.HEROKU_APP_NAME }}
+          else
+            echo "DD_TRACE_AGENT_URL not set (correct for Docker mode)"
+          fi
+
       - name: Set Heroku config vars for Datadog APM (Docker Container Mode)
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
           # Configure Datadog APM for Docker container mode with local agent
           # DD_HEROKU_DYNO=true enables proper dyno tagging
-          # No need for DD_TRACE_AGENT_URL as agent runs locally in container
+          # IMPORTANT: Do NOT set DD_TRACE_AGENT_URL - agent runs locally in container
           heroku config:set \
             DD_API_KEY="${{ secrets.DD_API_KEY }}" \
             DD_SITE="us5.datadoghq.com" \
