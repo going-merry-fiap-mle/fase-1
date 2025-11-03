@@ -21,6 +21,10 @@ jobs:
       - name: Login to Heroku Container Registry
         run: echo ${{ secrets.HEROKU_API_KEY }} | docker login --username=_ --password-stdin registry.heroku.com
 
+      - name: Create .env file from secrets
+        run: |
+          echo "DD_API_KEY=${{ secrets.DD_API_KEY }}" >> .env
+
       - name: Set Heroku app name and Dockerfile
         run: |
           echo "HEROKU_APP_NAME=${{ secrets.HEROKU_APP_NAME_BACKEND }}" >> $GITHUB_ENV
