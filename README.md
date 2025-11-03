@@ -11,8 +11,9 @@
 
 ## Links Importantes
 
-- **Vídeo de Apresentação:** [ADICIONAR LINK DO VÍDEO AQUI]
-- **Repositório GitHub:** https://github.com/going-merry-fiap-mle/fase-1
+- **Vídeo de Apresentação:**: [ADICIONAR LINK DO VÍDEO AQUI]
+- **Repositório GitHub:**: https://github.com/going-merry-fiap-mle/fase-1
+- **Link do ambiente produtivo**: https://fase-1-backend-dev-602c0b3ce639.herokuapp.com/apidocs/
 
 ---
 
