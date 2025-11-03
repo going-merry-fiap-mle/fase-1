@@ -18,4 +18,4 @@ else
   echo "[WARN] alembic not installed in environment; skipping migrations"
 fi
 
-exec poetry run python -m app.main
+exec poetry run ddtrace-run python -m app.main

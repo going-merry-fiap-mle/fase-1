@@ -1,19 +1,22 @@
+import subprocess
 from http import HTTPStatus
 from pathlib import Path
-import subprocess
+
+from ddtrace import patch_all
+
+patch_all()
 
 from flasgger import Swagger
 from flask import Flask, jsonify
 from pydantic import ValidationError
 from werkzeug.exceptions import UnsupportedMediaType
 
+from app.api.auth import router as auth_router
 from app.api.register_endpoints import register_endpoints
 from app.ml.model_loader import ml_loader
 from app.services.ml_model_service import BookNotFoundForMLError, MLModelNotLoadedError
 from app.utils.environment_loader import EnvironmentLoader
 from app.utils.logger import AppLogger, LogManager
-from app.api.auth import router as auth_router
-
 
 
 class FlaskApp:
@@ -67,13 +70,13 @@ class FlaskApp:
                 capture_output=True,
                 text=True,
                 timeout=300,
-                cwd=Path(__file__).parent.parent
+                cwd=Path(__file__).parent.parent,
             )
 
             if result.returncode == 0:
                 self.logger.info("ML model trained successfully")
                 if result.stdout:
-                    for line in result.stdout.strip().split('\n'):
+                    for line in result.stdout.strip().split("\n"):
                         if line.strip():
                             self.logger.info(f"[Training] {line}")
             else:
@@ -103,12 +106,10 @@ class FlaskApp:
                     "type": "apiKey",
                     "name": "Authorization",
                     "in": "header",
-                    "description": "JWT Authorization header using the Bearer scheme. Example: 'Authorization: Bearer {token}'"
+                    "description": "JWT Authorization header using the Bearer scheme. Example: 'Authorization: Bearer {token}'",
                 }
             },
-            "security": [
-                {"Bearer": []}
-            ]
+            "security": [{"Bearer": []}],
         }
         Swagger(self.app, template=swagger_template)
 
@@ -121,52 +122,83 @@ class FlaskApp:
                 serializable_err = {
                     "field": ".".join(str(x) for x in err.get("loc", [])),
                     "message": err.get("msg", ""),
-                    "type": err.get("type", "")
+                    "type": err.get("type", ""),
                 }
                 errors.append(serializable_err)
-            return jsonify({"error": "Invalid parameters", "details": errors}), HTTPStatus.BAD_REQUEST
+            return (
+                jsonify({"error": "Invalid parameters", "details": errors}),
+                HTTPStatus.BAD_REQUEST,
+            )
 
         @self.app.errorhandler(UnsupportedMediaType)
         def handle_unsupported_media_type(error: UnsupportedMediaType):
             self.logger.warning(f"Unsupported media type: {str(error)}")
-            return jsonify({
-                "error": "Invalid parameters",
-                "message": "Content-Type must be application/json"
-            }), HTTPStatus.BAD_REQUEST
+            return (
+                jsonify(
+                    {
+                        "error": "Invalid parameters",
+                        "message": "Content-Type must be application/json",
+                    }
+                ),
+                HTTPStatus.BAD_REQUEST,
+            )
 
         @self.app.errorhandler(ValueError)
         def handle_value_error(error: ValueError):
             self.logger.warning(f"Value error: {str(error)}")
             error_msg = str(error)
             if "not found" in error_msg.lower():
-                error_type = "Book not found" if "book" in error_msg.lower() else "Not found"
-                return jsonify({"error": error_type, "message": error_msg}), HTTPStatus.NOT_FOUND
+                error_type = (
+                    "Book not found" if "book" in error_msg.lower() else "Not found"
+                )
+                return (
+                    jsonify({"error": error_type, "message": error_msg}),
+                    HTTPStatus.NOT_FOUND,
+                )
             if "uuid" in error_msg.lower() or "hexadecimal" in error_msg.lower():
-                return jsonify({"error": "Invalid parameters", "message": error_msg}), HTTPStatus.BAD_REQUEST
-            return jsonify({"error": "Invalid value", "message": error_msg}), HTTPStatus.BAD_REQUEST
+                return (
+                    jsonify({"error": "Invalid parameters", "message": error_msg}),
+                    HTTPStatus.BAD_REQUEST,
+                )
+            return (
+                jsonify({"error": "Invalid value", "message": error_msg}),
+                HTTPStatus.BAD_REQUEST,
+            )
 
         @self.app.errorhandler(MLModelNotLoadedError)
         def handle_ml_model_not_loaded_error(error: MLModelNotLoadedError):
             self.logger.warning(f"ML Model not loaded: {str(error)}")
-            return jsonify({
-                "error": "Model not available",
-                "message": str(error),
-                "hint": "Model should train automatically on startup. Check application logs for training errors."
-            }), HTTPStatus.SERVICE_UNAVAILABLE
+            return (
+                jsonify(
+                    {
+                        "error": "Model not available",
+                        "message": str(error),
+                        "hint": "Model should train automatically on startup. Check application logs for training errors.",
+                    }
+                ),
+                HTTPStatus.SERVICE_UNAVAILABLE,
+            )
 
         @self.app.errorhandler(BookNotFoundForMLError)
         def handle_book_not_found_for_ml_error(error: BookNotFoundForMLError):
             self.logger.warning(f"Book not found for ML: {str(error)}")
-            return jsonify({"error": "Book not found", "message": str(error)}), HTTPStatus.NOT_FOUND
+            return (
+                jsonify({"error": "Book not found", "message": str(error)}),
+                HTTPStatus.NOT_FOUND,
+            )
 
         @self.app.errorhandler(Exception)
         def handle_generic_error(error: Exception):
             self.logger.exception(f"Unhandled exception: {str(error)}")
-            return jsonify({"error": "Internal server error", "message": str(error)}), HTTPStatus.INTERNAL_SERVER_ERROR
+            return (
+                jsonify({"error": "Internal server error", "message": str(error)}),
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
 
     def run(self) -> None:
         self.logger.info("Iniciando a aplicação...", HTTPStatus.CONTINUE)
         self.app.run(debug=self.debug, host=self.host, port=self.port)
+
 
 flask_app = FlaskApp()
 
